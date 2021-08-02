@@ -37,21 +37,33 @@ const seed = async (data) => {
   );`);
   console.log("created tables!");
 
-    const topicInsertQuery = format(`
-    INSERT INTO topics
-      (slug, description)
-    VALUES
-      %L;
-    `, formatValues(topicData, ['slug', 'description']))
-    await db.query(topicInsertQuery)
+  const topicInsertQuery = format(`
+  INSERT INTO topics
+    (slug, description)
+  VALUES
+    %L;
+  `, formatValues(topicData, ['slug', 'description']))
+  await db.query(topicInsertQuery)
 
-    const userInsertQuery = format(`
-    INSERT INTO users
-      (username, avatar_url, name)
-    VALUES
-      %L;
-    `, formatValues(userData, ['username', 'avatar_url', 'name']))
-    await db.query(userInsertQuery)
+  const userInsertQuery = format(`
+  INSERT INTO users
+    (username, avatar_url, name)
+  VALUES
+    %L;
+  `, formatValues(userData, ['username', 'avatar_url', 'name']))
+  await db.query(userInsertQuery)
+
+  // const fixedArticleData = articleData.map(article => {
+  //   article.created_at = article.created_at.toISOString()
+  //   return article
+  // })
+  const articleInsertQuery = format(`
+  INSERT INTO articles
+    (title, body, votes, topic, author, created_at)
+  VALUES
+    %L;
+  `, formatValues(articleData, ['title', 'body', 'votes', 'topic', 'author', 'created_at']))
+  await db.query(articleInsertQuery)
 };
 
 module.exports = seed;

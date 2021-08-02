@@ -7,3 +7,8 @@ exports.formatValues = (arrayOfObjects, cols) => {
         return values
     })
 }
+
+exports.formatDate = (date) => {
+    const dateObj = new Date(date)
+    return `${dateObj.toISOString()}`
+}

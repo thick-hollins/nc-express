@@ -1,4 +1,4 @@
-const { formatValues } = require('../db/utils/data-manipulation')
+const { formatValues, formatDate } = require('../db/utils/data-manipulation')
 
 describe('orderValues', () => {
     const cols = ['c', 'b', 'a']
@@ -19,3 +19,14 @@ describe('orderValues', () => {
         expect(original[1]).toEqual({a: 1, b: 2, c: 3})
     });
 });
+
+describe('formatDate', () => {
+    const testDate = 1587129000000
+    it('should convert a date object into an sql timestamp', () => {
+        expect(formatDate(testDate)).toBe('2020-04-17T13:10:00.000Z')
+    });
+});
+
+// 'Mon Aug 02 2021 14:19:40 GMT+0100 (British Summer Time)'
+
+// 2021-08-02 14:19:40

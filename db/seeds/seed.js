@@ -1,6 +1,11 @@
 const db = require("../connection.js");
 const format = require("pg-format");
-const { formatValues } = require('../utils/data-manipulation')
+const {
+  formatValues,
+  makeLookup,
+  updateKeyValue,
+  renameKeys,
+} = require("../utils/data-manipulation");
 
 const seed = async (data) => {
   const { articleData, commentData, topicData, userData } = data;
@@ -37,29 +42,76 @@ const seed = async (data) => {
   );`);
   console.log("created tables!");
 
-  const topicInsertQuery = format(`
+  const topicInsertQuery = format(
+    `
   INSERT INTO topics
     (slug, description)
   VALUES
     %L;
-  `, formatValues(topicData, ['slug', 'description']))
-  await db.query(topicInsertQuery)
+  `,
+    formatValues(topicData, ["slug", "description"])
+  );
+  await db.query(topicInsertQuery);
 
-  const userInsertQuery = format(`
+  const userInsertQuery = format(
+    `
   INSERT INTO users
     (username, avatar_url, name)
   VALUES
     %L;
-  `, formatValues(userData, ['username', 'avatar_url', 'name']))
-  await db.query(userInsertQuery)
+  `,
+    formatValues(userData, ["username", "avatar_url", "name"])
+  );
+  await db.query(userInsertQuery);
 
-  const articleInsertQuery = format(`
+  const articleInsertQuery = format(
+    `
   INSERT INTO articles
     (title, body, votes, topic, author, created_at)
   VALUES
+    %L
+    RETURNING article_id, title;
+  `,
+    formatValues(articleData, [
+      "title",
+      "body",
+      "votes",
+      "topic",
+      "author",
+      "created_at",
+    ])
+  );
+  const articleInfo = await db.query(articleInsertQuery);
+
+  const refObject = makeLookup(articleInfo.rows, "title", "article_id");
+  const commentDataWithId = updateKeyValue(
+    commentData,
+    "belongs_to",
+    "article_id",
+    refObject
+  );
+  const formattedCommentDataWithId = renameKeys(
+    commentDataWithId,
+    "created_by",
+    "author"
+  );
+
+  const commentInsertQuery = format(
+    `
+  INSERT INTO comments
+    (author, article_id, votes, created_at, body)
+  VALUES
     %L;
-  `, formatValues(articleData, ['title', 'body', 'votes', 'topic', 'author', 'created_at']))
-  await db.query(articleInsertQuery)
+  `,
+    formatValues(formattedCommentDataWithId, [
+      "author",
+      "article_id",
+      "votes",
+      "created_at",
+      "body",
+    ])
+  );
+  await db.query(commentInsertQuery);
 };
 
 module.exports = seed;

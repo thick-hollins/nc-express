@@ -9,6 +9,5 @@ exports.formatValues = (arrayOfObjects, cols) => {
 }
 
 exports.formatDate = (date) => {
-    const dateObj = new Date(date)
     return `${dateObj.toISOString()}`
 }

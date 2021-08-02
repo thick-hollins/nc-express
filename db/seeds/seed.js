@@ -53,10 +53,6 @@ const seed = async (data) => {
   `, formatValues(userData, ['username', 'avatar_url', 'name']))
   await db.query(userInsertQuery)
 
-  // const fixedArticleData = articleData.map(article => {
-  //   article.created_at = article.created_at.toISOString()
-  //   return article
-  // })
   const articleInsertQuery = format(`
   INSERT INTO articles
     (title, body, votes, topic, author, created_at)

@@ -7,6 +7,17 @@ const app = require("../app.js");
 beforeEach(() => seed(testData));
 afterAll(() => db.end());
 
+describe('GET not-a-route', () => {
+  it('status 404, relevant message', () => {
+    return request(app)
+      .get("/not_a_route")
+      .expect(404)
+      .then(res => {
+        expect(res.body.msg).toBe('Route not found')
+      })
+  });
+});
+
 describe("GET api/topics", () => {
   it("status 200 - returns an object with an array of topic objects on a key of topics", () => {
     return request(app)
@@ -14,9 +25,18 @@ describe("GET api/topics", () => {
       .expect(200)
       .then((result) => {
         expect(result.body.topics).toBeInstanceOf(Array);
+        result.body.topics.forEach((topic) => {
+          expect(topic).toMatchObject({
+            description: expect.any(String),
+            slug: expect.any(String),
+          });
+        });
       });
   });
-  it("status 200 - returns an object with an array of topic objects on a key of topics", () => {
+});
+
+describe("GET api/articles/:article_id", () => {
+  it("status 200 - returns an object with the relevant article", () => {
     return request(app)
       .get("/api/topics")
       .expect(200)
@@ -30,3 +50,36 @@ describe("GET api/topics", () => {
       });
   });
 });
+
+// expect TIMESTAMP ?
+
+describe('GET api/articles/:article_id', () => {
+  it('status 200 - returns an object with the relevant article', () => {
+    return request(app)
+      .get('/api/articles/1')
+      .expect(200)
+      .then(res => {
+          const { article } = res.body
+          expect(article.article_id).toBe(1)
+          expect(article).toEqual(
+              expect.objectContaining({
+              article_id: expect.any(Number),
+              title: expect.any(String),
+              body: expect.any(String),
+              votes: expect.any(Number),
+              author: expect.any(String),
+              topic: expect.any(String),
+              created_at: expect.any(String)
+              })
+          );
+      })
+  })
+  it('status 400, well-formed but non-existant article ID', () => {
+    return request(app)
+      .get("/api/articles/899")
+      .expect(404)
+      .then(res => {
+        expect(res.body.msg).toBe('Resource not found')
+      })
+  });
+})

@@ -13,16 +13,18 @@ const seed = async (data) => {
   await db.query(`DROP TABLE IF EXISTS articles;`);
   await db.query(`DROP TABLE IF EXISTS users;`);
   await db.query(`DROP TABLE IF EXISTS topics;`);
-  console.log("Dropped all tables");
+  
   await db.query(`CREATE TABLE topics (
     slug VARCHAR(100) PRIMARY KEY,
     description VARCHAR(300)
   );`);
+  
   await db.query(`CREATE TABLE users (
     username VARCHAR(100) PRIMARY KEY,
     avatar_url VARCHAR(230),
     name VARCHAR(100)
   );`);
+  
   await db.query(`CREATE TABLE articles (
     article_id SERIAL PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
@@ -32,6 +34,7 @@ const seed = async (data) => {
     author VARCHAR(100) REFERENCES users(username),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );`);
+  
   await db.query(`CREATE TABLE comments (
     comment_id SERIAL PRIMARY KEY,
     author VARCHAR(100) REFERENCES users(username),
@@ -40,7 +43,6 @@ const seed = async (data) => {
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     body TEXT
   );`);
-  console.log("created tables!");
 
   const topicInsertQuery = format(
     `

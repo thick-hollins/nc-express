@@ -1,5 +1,6 @@
 const db = require("../connection.js");
 const format = require("pg-format");
+const { formatValues } = require('../utils/data-manipulation')
 
 const seed = async (data) => {
   const { articleData, commentData, topicData, userData } = data;
@@ -35,8 +36,22 @@ const seed = async (data) => {
     body TEXT
   );`);
   console.log("created tables!");
-  // 1. create tables
-  // 2. insert data
+
+    const topicInsertQuery = format(`
+    INSERT INTO topics
+      (slug, description)
+    VALUES
+      %L;
+    `, formatValues(topicData, ['slug', 'description']))
+    await db.query(topicInsertQuery)
+
+    const userInsertQuery = format(`
+    INSERT INTO users
+      (username, avatar_url, name)
+    VALUES
+      %L;
+    `, formatValues(userData, ['username', 'avatar_url', 'name']))
+    await db.query(userInsertQuery)
 };
 
 module.exports = seed;

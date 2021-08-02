@@ -40,7 +40,7 @@ describe("GET api/articles/:article_id", () => {
     return request(app)
       .get("/api/topics")
       .expect(200)
-      .then((result) => {
+      .then(result => {
         result.body.topics.forEach((topic) => {
           expect(topic).toMatchObject({
             description: expect.any(String),
@@ -74,12 +74,30 @@ describe('GET api/articles/:article_id', () => {
           );
       })
   })
-  it('status 400, well-formed but non-existant article ID', () => {
+
+  // promise .all() - get all comments on article 1, count them
+
+  it('calculates comment count', () => {
+    return request(app)
+      .get('/api/articles/1')
+      .then(res => {
+        expect(res.body.article.comment_count).toBe(13)
+      })
+  })
+  it('status 404, well-formed but non-existant article ID', () => {
     return request(app)
       .get("/api/articles/899")
       .expect(404)
       .then(res => {
         expect(res.body.msg).toBe('Resource not found')
       })
+  });
+  it('status 400, malformed id', () => {
+    return request(app)
+    .get("/api/articles/albania")
+    .expect(400)
+    .then(res => {
+      expect(res.body.msg).toBe('Bad request - invalid data type')
+    })
   });
 })

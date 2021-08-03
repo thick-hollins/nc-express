@@ -43,10 +43,8 @@ exports.updateArticle = async (article_id, inc_votes) => {
     }
   return article.rows[0]
 }
-
 // DEFAULT ORDER - should be different depending on column
-
-exports.selectArticles = async (queries) => {
+exports.selectArticles = async queries => {
   const {
     sort_by = 'created_at',
     order = 'desc',
@@ -94,9 +92,18 @@ exports.selectArticles = async (queries) => {
 exports.selectComments = async article_id => {
   const comments = await db
     .query(`
-    SELECT * FROM comments;`, [article_id])
-    if (!article.rows.length) {
-      return Promise.reject({status: 404, msg: 'Resource not found'})
+    SELECT
+      comment_id,
+      article_id,
+      votes,
+      created_at,
+      author,
+      body 
+    FROM comments
+    WHERE article_id = $1
+    ;`, [article_id])
+    if (!comments.rows.length) {
+      await checkExists('articles', 'article_id', article_id)
     }
-  return article.rows
+  return comments.rows
 }

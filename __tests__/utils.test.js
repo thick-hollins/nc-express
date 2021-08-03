@@ -5,7 +5,7 @@ const {
   renameKeys,
 } = require("../db/utils/data-manipulation")
 const {
-  mapCols, checkExists
+  mapCols
 } = require('../db/utils/queries')
 
 describe("orderValues", () => {

@@ -30,9 +30,6 @@ describe("GET api/topics", () => {
         });
       });
   });
-});
-
-describe("GET api/articles/:article_id", () => {
   it("status 200 - returns an object with the relevant article", async () => {
     const { body: { topics }} = await request(app)
       .get("/api/topics")
@@ -97,6 +94,7 @@ describe('PATCH /api/articles/:article_id', () => {
       )
   });  
 });
+
 describe('PATCH /api/articles/:article_id', () => {
   it('rejects with 404 given non-existant ID', async () => {
     const { body: { msg } } = await request(app)
@@ -218,9 +216,53 @@ describe('GET /api/articles', () => {
   });
 });
 
+describe('GET /api/articles/:article_id/comments', () => {
+  it('responds with all commment objects relating to the article_id parameter', async () => {
+    const { body: { comments }} = await request(app)
+    .get("/api/articles/1/comments")
+    .expect(200)
+    comments.forEach((comment) => {
+      expect(comment).toMatchObject({
+        comment_id: expect.any(Number),
+        article_id: 1,
+        votes: expect.any(Number),
+        created_at: expect.any(String),
+        author: expect.any(String),
+        body: expect.any(String),
+      });
+    });
+  });
+  it('non-existant article ID gives 404', async () => {
+    const { body: { msg } } = await request(app)
+    .get('/api/articles/1000/comments')
+    .expect(404)
+    expect(msg).toBe('Resource not found')
+  });
+  it('existant article ID with no comments gives 200 and empty array', async () => {
+    const { body: { comments } } = await request(app)
+    .get('/api/articles/2/comments')
+    .expect(200)
+    expect(comments).toEqual([])
+  });
+  it('400 - malformed article ID', async () => {
+    const { body: { msg } } = await request(app)
+    .get('/api/articles/beetroot/comments')
+    .expect(400)
+    expect(msg).toBe('Bad request - invalid data type')
+  });
+});
+
+xdescribe('GET /api/', () => {
+  it('should ', async () => {
+    const endpoints = await request(app)
+    .get("/api/")
+    .expect(200)
+    expect(endpoints).toEqual()
+  });
+});
+
 xdescribe('checkExists', () => {
   it('should respond with 404 given non existant value in the database in a valid table and col', async () => {
-    const rejection = await checkExists('topics', 'slug', 'bikes')
-    expect(rejection).toEqual({ status: 404, msg: 'Resource not found' })
+    await expect(checkExists('topics', 'slug', 'mitch')).rejects
   });
 });

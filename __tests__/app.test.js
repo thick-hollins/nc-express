@@ -90,12 +90,32 @@ describe('GET api/articles/:article_id', () => {
 
 describe('PATCH /api/articles/:article_id', () => {
   it('increments an articles votes by given amount, responds with article', async () => {
-    const { body: { article } } = await request(app).patch('/api/articles/2').expect(200).send({
-      inc_votes: 1
-    })
+    const { body: { article } } = await request(app)
+    .patch('/api/articles/2').expect(200)
+    .send({ inc_votes: 1 })
       expect(article).toEqual(
           expect.objectContaining({ votes: 1 })
       )
+  });  
+});
+describe('PATCH /api/articles/:article_id', () => {
+  it('rejects with 404 given non-existant ID', async () => {
+    const { body: { msg } } = await request(app)
+    .patch('/api/articles/200').expect(404)
+    .send({ inc_votes: 1 })
+      expect(msg).toBe('Resource not found')
+  });  
+  it('rejects with 400 given request without inc_vote', async () => {
+    const { body: { msg } } = await request(app)
+    .patch('/api/articles/2').expect(400)
+    .send({})
+      expect(msg).toBe('Bad request - invalid vote')
+  });  
+  it('rejects with 400 given invalid data type', async () => {
+    const { body: { msg } } = await request(app)
+    .patch('/api/articles/2').expect(400)
+    .send({ inc_votes: 'Leeds' })
+      expect(msg).toBe('Bad request - invalid data type')
   });  
 });
 

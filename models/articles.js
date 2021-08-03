@@ -29,9 +29,12 @@ exports.selectArticleById = async article_id => {
   return mapCols(article.rows, col => parseInt(col), 'comment_count')[0]
 }
 
-// do error handling
+// further errors - negative votes?
 
 exports.updateArticle = async (article_id, inc_votes) => {
+  if (!inc_votes || inc_votes <= 0) {
+    return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
+  }
   const article = await db
     .query(`
     UPDATE articles

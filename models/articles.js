@@ -29,6 +29,8 @@ exports.selectArticleById = async article_id => {
   return mapCols(article.rows, col => parseInt(col), 'comment_count')[0]
 }
 
+// do error handling
+
 exports.updateArticle = async (article_id, inc_votes) => {
   const article = await db
     .query(`
@@ -44,9 +46,6 @@ exports.updateArticle = async (article_id, inc_votes) => {
 }
 
 // DEFAULT ORDER - should be different depending on column
-
-// error handling.md suggests non-existant author or topic is an error?
-// also existant... but no articles
 
 exports.selectArticles = async (queries) => {
   const {

@@ -9,9 +9,9 @@ exports.getArticleById = (req, res, next) => {
 }
 
 exports.patchArticle = (req, res, next) => {
-  updateArticle(req.params.article_id, req.body)
+  updateArticle(req.params.article_id, req.body.inc_votes)
     .then((article) => {
-      res.status(201).send({ article });
+      res.status(200).send({ article });
     })
     .catch(next)
 }

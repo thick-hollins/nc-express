@@ -1,8 +1,11 @@
 exports.mapCols = (arr, cb, ...cols) => {
     return arr.map(obj => {
+        let copy = { ...obj }
         for (let col of cols) {
-            obj[col] = cb(obj[col])
+            if (copy.hasOwnProperty(col)) {
+                copy[col] = cb(copy[col])
+            }
         }
-        return obj
+        return copy
     })
 }

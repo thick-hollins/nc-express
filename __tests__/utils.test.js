@@ -234,3 +234,27 @@ describe("renameKeys", () => {
     expect(dogs).toEqual([{ name: "Otis" }, { name: "Boris", fluffy: true }]);
   });
 });
+describe('mapCols', () => {
+  objArray = [{a: 1, b: 2, c: 3}, {a: 1, b: 2}]
+  it('applies a callback function to properties of objects in an array under specified keys', () => {
+    expect(mapCols(objArray, x => x * 2, 'a')).toEqual([{a: 2, b: 2, c: 3}, {a: 2, b: 2}])
+  });
+  it('does not create cols if they are not already on object', () => {
+    expect(mapCols(objArray, x => x * 2, 'c')).toEqual([{a: 1, b: 2, c: 6}, {a: 1, b: 2}])
+  });
+  it('returns equal object if col does not exist', () => {
+    expect(mapCols(objArray, x => x * 2, 'd')).toEqual([{a: 1, b: 2, c: 3}, {a: 1, b: 2}])
+  });
+  it("returned array has different reference to original array", () => {
+    expect(mapCols(objArray, x => x * 2, 'a')).not.toBe(objArray);
+  });
+  it("an object in array has different reference to original object", () => {
+    const dogs = [{ name: "Otis" }];
+    expect(mapCols(dogs, x => x * 2, 'name')[0]).not.toBe(dogs[0]);
+  });
+  it("original object in array is not mutated", () => {
+    const dogs = [{ name: "Otis" }]
+    mapCols(dogs, x => x * 2, 'name')
+    expect(dogs[0]).toEqual({ name: "Otis" });
+  });
+});

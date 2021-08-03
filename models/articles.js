@@ -1,8 +1,6 @@
 const db = require("../db/connection.js")
-const { mapCols } = require('../db/utils/queries')
+const { mapCols, checkExists } = require('../db/utils/queries')
 const f = require('pg-format')
-
-// merge this with selectArticles model?
 
 exports.selectArticleById = async article_id => {
   const article = await db
@@ -29,10 +27,8 @@ exports.selectArticleById = async article_id => {
   return mapCols(article.rows, col => parseInt(col), 'comment_count')[0]
 }
 
-// further errors - negative votes?
-
 exports.updateArticle = async (article_id, inc_votes) => {
-  if (!inc_votes || inc_votes <= 0) {
+  if (!inc_votes) {
     return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
   }
   const article = await db
@@ -62,7 +58,7 @@ exports.selectArticles = async (queries) => {
       !['asc', 'desc'].includes(order)) {
     return Promise.reject({status: 400, msg: 'Bad request - invalid sort'})
   }
-  const article = await db
+  const articles = await db
     .query(`
     SELECT
       articles.author,
@@ -72,19 +68,35 @@ exports.selectArticles = async (queries) => {
       topic,
       articles.created_at,
       articles.votes,
-      COUNT(articles.article_id) AS
+      COUNT(comments.article_id) AS
         comment_count
     FROM articles
-    JOIN comments
+    LEFT JOIN comments
     ON articles.article_id = comments.article_id
     ${topic || author ? `WHERE ` : ''}
       ${topic? `topic = ${f.literal(topic)}`: '' }
       ${topic && author ? `AND ` : ''}
-      ${author? `author = ${f.literal(author)}` : ''}
+      ${author? `articles.author = ${f.literal(author)}` : ''}
       GROUP BY 
         articles.article_id
       ORDER BY
         ${sort_by} ${order};
     `)
-  return mapCols(article.rows, col => parseInt(col), 'comment_count')
+  if (topic && !articles.rows.length) {
+    await checkExists('topics', 'slug', topic)
+  }
+  if (author && !articles.rows.length) {
+    await checkExists('users', 'username', author)
+  }
+  return mapCols(articles.rows, col => parseInt(col), 'comment_count')
+}
+
+exports.selectComments = async article_id => {
+  const comments = await db
+    .query(`
+    SELECT * FROM comments;`, [article_id])
+    if (!article.rows.length) {
+      return Promise.reject({status: 404, msg: 'Resource not found'})
+    }
+  return article.rows
 }

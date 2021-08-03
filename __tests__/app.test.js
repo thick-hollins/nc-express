@@ -3,6 +3,7 @@ const request = require("supertest");
 const testData = require("../db/data/test-data/index.js");
 const seed = require("../db/seeds/seed.js");
 const app = require("../app.js");
+const { checkExists } = require('../db/utils/queries')
 
 beforeEach(() => seed(testData));
 afterAll(() => db.end());
@@ -44,8 +45,6 @@ describe("GET api/articles/:article_id", () => {
       });
   });
 });
-
-// expect TIMESTAMP regex?
 
 describe('GET api/articles/:article_id', () => {
   it('status 200 - returns an object with the relevant article', async () => {
@@ -137,5 +136,91 @@ describe('GET /api/articles', () => {
             })
         );
       });
+  });
+  it('sorts by default by created_at, descending', async () => {
+    const { body: { articles } } = await request(app)
+    .get('/api/articles')
+    expect(articles).toBeSortedBy('created_at', { descending: true })
+  });
+  it('sorts by all other columns', async () => {
+    const byAuthor =  request(app).get('/api/articles?sort_by=author')
+    const byTitle = request(app).get('/api/articles?sort_by=title')
+    const byArticleId = request(app).get('/api/articles?sort_by=article_id')
+    const byTopic = request(app).get('/api/articles?sort_by=topic')
+    const byCreatedAt = request(app).get('/api/articles?sort_by=created_at')
+    const byVotes = request(app).get('/api/articles?sort_by=votes')
+    const byCommentCount = request(app).get('/api/articles?sort_by=comment_count')
+    const [author, title, articleId, topic, createdAt, votes, commentCount] 
+      = await Promise.all([
+      byAuthor,
+      byTitle,
+      byArticleId, 
+      byTopic, 
+      byCreatedAt, 
+      byVotes, 
+      byCommentCount])
+    expect(author.body.articles).toBeSortedBy('author', { descending: true })
+    expect(title.body.articles).toBeSortedBy('title', { descending: true })
+    expect(articleId.body.articles).toBeSortedBy('article_id', { descending: true })
+    expect(topic.body.articles).toBeSortedBy('topic', { descending: true })
+    expect(createdAt.body.articles).toBeSortedBy('created_at', { descending: true })
+    expect(votes.body.articles).toBeSortedBy('votes', { descending: true })
+    expect(commentCount.body.articles).toBeSortedBy('comment_count', { descending: true })
+  });
+  it('sorts ascending when given as order', async () => {
+    const { body: { articles } } = await request(app)
+    .get('/api/articles?order=asc')
+    expect(articles).toBeSortedBy('created_at', { descending: false })
+  });
+  it('error 400 given sort col not in table', async () => {
+    const { body: { msg } } = await request(app)
+    .get('/api/articles?sort_by=not_a_col')
+    .expect(400)
+    .send()
+    expect(msg).toBe('Bad request - invalid sort')
+  });
+  it('error 400 given sort order not asc or desc', async () => {
+    const { body: { msg } } = await request(app)
+    .get('/api/articles?order=not_an_order')
+    .expect(400)
+    .send()
+    expect(msg).toBe('Bad request - invalid sort')
+  });
+  it('queries by author', async () => {
+    const { body: { articles } } = await request(app)
+    .get('/api/articles?author=butter_bridge')
+    articles.forEach((article) => {
+        expect(article.author).toBe('butter_bridge')
+      });
+  });
+  it('queries by topic', async () => {
+    const { body: { articles } } = await request(app)
+    .get('/api/articles?topic=mitch')
+    articles.forEach((article) => {
+        expect(article.topic).toBe('mitch')
+      });
+  });
+  it('given existant topic with no linked articles, returns an empty array', async () => {
+    const { body: { articles } } = await request(app)
+    .get('/api/articles?topic=paper')
+    expect(articles).toEqual([])
+  });
+  it('given existant author with no linked articles, returns an empty array', async () => {
+    const { body: { articles } } = await request(app)
+    .get('/api/articles?author=lurker')
+    expect(articles).toEqual([])
+  });
+  it('given well-formed but non-existant topic, responds with 404', async () => {
+    const { body: { msg } } = await request(app)
+    .get('/api/articles?topic=tennis')
+    .expect(404)
+    expect(msg).toBe('Resource not found')
+  });
+});
+
+xdescribe('checkExists', () => {
+  it('should respond with 404 given non existant value in the database in a valid table and col', async () => {
+    const rejection = await checkExists('topics', 'slug', 'bikes')
+    expect(rejection).toEqual({ status: 404, msg: 'Resource not found' })
   });
 });

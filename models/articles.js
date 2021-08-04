@@ -50,6 +50,8 @@ exports.selectArticles = async (queries) => {
   const {
     sort_by = 'created_at',
     order = 'desc',
+    limit = 5,
+    page = 1,
     topic,
     author
   } = queries
@@ -80,7 +82,11 @@ exports.selectArticles = async (queries) => {
       GROUP BY 
         articles.article_id
       ORDER BY
-        ${sort_by} ${order};
+        ${sort_by} ${order}
+      LIMIT
+        ${f.literal(limit)}
+      OFFSET
+        ${f.literal((page - 1) * limit)};
     `)
   if (topic && !articles.rows.length) {
     await checkExists('topics', 'slug', topic)

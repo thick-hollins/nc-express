@@ -105,7 +105,7 @@ describe('PATCH /api/articles/:article_id', () => {
 describe('GET /api/articles', () => {
   it('responds with an array of article objects', async () => {
     const { body: { articles } } = await request(app)
-    .get('/api/articles')
+    .get('/api/articles?limit=15')
     .expect(200)
     expect(articles).toBeInstanceOf(Array);
     articles.forEach((article) => {
@@ -123,17 +123,17 @@ describe('GET /api/articles', () => {
   });
   it('sorts by default by created_at, descending', async () => {
     const { body: { articles } } = await request(app)
-    .get('/api/articles')
+    .get('/api/articles?limit=15')
     expect(articles).toBeSortedBy('created_at', { descending: true })
   });
   it('sorts by all other columns', async () => {
-    const byAuthor =  request(app).get('/api/articles?sort_by=author')
-    const byTitle = request(app).get('/api/articles?sort_by=title')
-    const byArticleId = request(app).get('/api/articles?sort_by=article_id')
-    const byTopic = request(app).get('/api/articles?sort_by=topic')
-    const byCreatedAt = request(app).get('/api/articles?sort_by=created_at')
-    const byVotes = request(app).get('/api/articles?sort_by=votes')
-    const byCommentCount = request(app).get('/api/articles?sort_by=comment_count')
+    const byAuthor =  request(app).get('/api/articles?sort_by=author&limit=15')
+    const byTitle = request(app).get('/api/articles?sort_by=title&limit=15')
+    const byArticleId = request(app).get('/api/articles?sort_by=article_id&limit=15')
+    const byTopic = request(app).get('/api/articles?sort_by=topic&limit=15')
+    const byCreatedAt = request(app).get('/api/articles?sort_by=created_at&limit=15')
+    const byVotes = request(app).get('/api/articles?sort_by=votes&limit=15')
+    const byCommentCount = request(app).get('/api/articles?sort_by=comment_count&limit=15')
     const [author, title, articleId, topic, createdAt, votes, commentCount] 
       = await Promise.all([
       byAuthor,
@@ -153,7 +153,7 @@ describe('GET /api/articles', () => {
   });
   it('sorts ascending when given as order', async () => {
     const { body: { articles } } = await request(app)
-    .get('/api/articles?order=asc')
+    .get('/api/articles?order=asc&limit=15')
     expect(articles).toBeSortedBy('created_at', { descending: false })
   });
   it('error 400 given sort col not in table', async () => {
@@ -200,6 +200,22 @@ describe('GET /api/articles', () => {
     .expect(404)
     expect(msg).toBe('Resource not found')
   });
+  it('should return maximum 5 results by default', async () => {
+    const { body: { articles } } = await request(app).get('/api/articles')
+      expect(articles).toHaveLength(5)
+  });
+  it('should allow a custom limit', async () => {
+    const { body: { articles } } = await request(app).get('/api/articles?limit=10')
+      expect(articles).toHaveLength(10)
+  });
+  it('requesting page 2 should skip the first n results where n is limit', async () => {
+    const { body: { articles } } = await request(app).get('/api/articles?sort_by=article_id&order=asc&page=2&limit=2')
+      expect(articles[0].article_id).toBe(3)
+  });
+  it('requesting page 3 should skip the first n results where n is limit * 2', async () => {
+    const { body: { articles } } = await request(app).get('/api/articles?sort_by=article_id&order=asc&page=3&limit=2')
+      expect(articles[0].article_id).toBe(5)
+  })
 });
 
 describe('GET /api/articles/:article_id/comments', () => {
@@ -323,6 +339,41 @@ describe('GET /api/users/:username', () => {
         })
     );
   });
+  it('non-existant username, 404', async () => {
+    const { body: { msg } } = await request(app)
+      .get('/api/users/not_user_here')
+      .expect(404)
+    expect(msg).toBe('Resource not found')
+  });  
+});
+
+describe('PATCH /api/comments/:comment_id', () => {
+  it('increments a comments votes by given amount, responds with comment', async () => {
+    const { body: { comment } } = await request(app)
+    .patch('/api/comments/2').expect(200)
+    .send({ inc_votes: 1 })
+      expect(comment).toEqual(
+          expect.objectContaining({ votes: 15 })
+      )
+  });  
+  it('rejects with 404 given non-existant ID', async () => {
+    const { body: { msg } } = await request(app)
+    .patch('/api/comments/200').expect(404)
+    .send({ inc_votes: 1 })
+      expect(msg).toBe('Resource not found')
+  });  
+  it('rejects with 400 given request without inc_vote', async () => {
+    const { body: { msg } } = await request(app)
+    .patch('/api/comments/2').expect(400)
+    .send({})
+      expect(msg).toBe('Bad request - invalid vote')
+  });  
+  it('rejects with 400 given invalid data type', async () => {
+    const { body: { msg } } = await request(app)
+    .patch('/api/comments/2').expect(400)
+    .send({ inc_votes: 'Leeds' })
+      expect(msg).toBe('Bad request - invalid data type')
+  }); 
 });
 
 // finish this test / task

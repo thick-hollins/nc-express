@@ -44,8 +44,6 @@ exports.updateArticle = async (article_id, inc_votes) => {
   return article.rows[0]
 }
 
-// DEFAULT ORDER - should be different depending on column
-
 exports.selectArticles = async (queries) => {
   const {
     sort_by = 'created_at',

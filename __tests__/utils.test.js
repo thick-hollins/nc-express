@@ -258,7 +258,6 @@ describe('mapCols', () => {
     expect(dogs[0]).toEqual({ name: "Otis" });
   });
 });
-
 xdescribe('checkExists', () => {
   it('should respond with 404 given non existant value in the database in a valid table and col', async () => {
     await expect(checkExists('topics', 'slug', 'mitch')).rejects

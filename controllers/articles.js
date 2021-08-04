@@ -1,4 +1,12 @@
-const { selectArticleById, updateArticle, selectArticles, selectComments, insertComment } = require("../models/articles");
+const {
+  selectArticleById, 
+  updateArticle, 
+  selectArticles, 
+  selectComments, 
+  insertComment,
+  insertArticle,
+  removeArticle 
+  } = require("../models/articles");
 
 exports.getArticleById = (req, res, next) => {
   selectArticleById(req.params.article_id)
@@ -36,6 +44,22 @@ exports.postComment = (req, res, next) => {
   insertComment(req.params.article_id, req.body)
     .then((comment) => {
       res.status(201).send({ comment })
+    })
+    .catch(next)
+}
+
+exports.postArticle = (req, res, next) => {
+  insertArticle(req.body)
+    .then((article) => {
+      res.status(201).send({ article })
+    })
+    .catch(next)
+}
+
+exports.deleteArticle = (req, res, next) => {
+  removeArticle(req.params.article_id)
+    .then(() => {
+      res.status(204).send()
     })
     .catch(next)
 }

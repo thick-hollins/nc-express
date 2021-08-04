@@ -50,7 +50,7 @@ exports.selectArticles = async (queries) => {
   const {
     sort_by = 'created_at',
     order = 'desc',
-    limit = 5,
+    limit = 10,
     page = 1,
     topic,
     author
@@ -97,7 +97,7 @@ exports.selectArticles = async (queries) => {
   return mapCols(articles.rows, col => parseInt(col), 'comment_count')
 }
 
-exports.selectComments = async (article_id, { limit = 5, page = 1 }) => {
+exports.selectComments = async (article_id, { limit = 10, page = 1 }) => {
   const comments = await db
     .query(`
     SELECT
@@ -137,4 +137,32 @@ exports.insertComment = async (article_id, newComment) => {
     RETURNING *;
     `, [article_id, username, body])
 return comment.rows[0]
+}
+
+exports.insertArticle = async (newComment) => {
+  const {author, title, body, topic} = newComment
+  if (!author || !body || !title || !topic) {
+    return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
+  }
+  const article = await db
+    .query(`
+    INSERT INTO articles
+      (author, title, body, topic)
+    VALUES
+      ($1, $2, $3, $4)
+    RETURNING *;
+    `, [author, title, body, topic])
+return article.rows[0]
+}
+
+exports.removeArticle = async (article_id) => {
+  const res = await db
+    .query(`
+      DELETE FROM articles
+      WHERE article_id = $1
+      RETURNING *;
+      ;`, [article_id])
+    if (!res.rows.length) {
+      return Promise.reject({status: 404, msg: 'Resource not found'})
+    }
 }

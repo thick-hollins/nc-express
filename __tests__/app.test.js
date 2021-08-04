@@ -52,12 +52,13 @@ describe('GET api/articles/:article_id', () => {
       );
   })
 
-  // promise .all() - get all comments on article 1, count them
-
   it('calculates comment count', async () => {
-    const { body: { article: { comment_count } } } = await request(app)
+    let res1 = request(app)
       .get('/api/articles/1')
-      expect(comment_count).toBe(13)
+    let res2 = request(app)
+      .get("/api/articles/1/comments?limit=15")
+    const [article, comments] = await Promise.all([res1, res2])
+    expect(article.body.comment_count).toBe(comments.body.length)
   })
   it('status 404, well-formed but non-existant article ID', async () => {
     const { body: { msg } } = await request(app)
@@ -200,13 +201,13 @@ describe('GET /api/articles', () => {
     .expect(404)
     expect(msg).toBe('Resource not found')
   });
-  it('should return maximum 5 results by default', async () => {
+  it('should return maximum 10 results by default', async () => {
     const { body: { articles } } = await request(app).get('/api/articles')
-      expect(articles).toHaveLength(5)
+      expect(articles).toHaveLength(10)
   });
   it('should allow a custom limit', async () => {
-    const { body: { articles } } = await request(app).get('/api/articles?limit=10')
-      expect(articles).toHaveLength(10)
+    const { body: { articles } } = await request(app).get('/api/articles?limit=5')
+      expect(articles).toHaveLength(5)
   });
   it('requesting page 2 should skip the first n results where n is limit', async () => {
     const { body: { articles } } = await request(app)
@@ -218,6 +219,68 @@ describe('GET /api/articles', () => {
       .get('/api/articles?sort_by=article_id&order=asc&page=3&limit=2')
       expect(articles[0].article_id).toBe(5)
   })
+});
+
+describe('POST /api/articles', () => {
+  it('should add an article and respond with added article', async () => {
+    testReq = {
+      author: 'butter_bridge', 
+      title: 'buttermilk',
+      body: 'some content',
+      topic: 'cats'
+    }
+    const { body: { article } } = await request(app)
+      .post('/api/articles')
+      .expect(201)
+      .send(testReq)
+    expect(article).toEqual(
+      expect.objectContaining({
+        article_id: expect.any(Number),
+        title: expect.any(String),
+        topic: expect.any(String),
+        created_at: expect.any(String),
+        votes: expect.any(Number)
+        })
+    )
+  });
+  it('responds with 400 if a field is missing on request', async () => {
+    testReq = {
+      author: 'butter_bridge', 
+      title: 'buttermilk',
+      topic: 'cats'
+    }
+    const { body: { msg } } = await request(app)
+      .post('/api/articles')
+      .expect(400)
+      .send(testReq)
+    expect(msg).toBe('Bad request - missing field(s)');
+  });
+  it('responds with 400 if a non-existant topic', async () => {
+    testReq = {
+      author: 'butter_bridge', 
+      title: 'buttermilk',
+      body: 'some content',
+      topic: 'table tennis'
+    }
+    const { body: { msg } } = await request(app)
+      .post('/api/articles')
+      .expect(400)
+      .send(testReq)
+    expect(msg).toBe('Bad request');
+  });
+  it('responds with 400 if a non-existant author', async () => {
+    testReq = {
+      author: 'turgenev', 
+      title: 'buttermilk',
+      body: 'some content',
+      topic: 'cats'
+    }
+    const { body: { msg } } = await request(app)
+      .post('/api/articles')
+      .expect(400)
+      .send(testReq)
+    expect(msg).toBe('Bad request');
+  });
 });
 
 describe('GET /api/articles/:article_id/comments', () => {
@@ -254,15 +317,15 @@ describe('GET /api/articles/:article_id/comments', () => {
     .expect(400)
     expect(msg).toBe('Bad request - invalid data type')
   });
-  it('should return maximum 5 results by default', async () => {
+  it('should return maximum 10 results by default', async () => {
     const { body: { comments } } = await request(app)
       .get('/api/articles/1/comments')
-      expect(comments).toHaveLength(5)
+      expect(comments).toHaveLength(10)
   });
   it('should allow a custom limit', async () => {
     const { body: { comments } } = await request(app)
-      .get('/api/articles/1/comments?limit=10')
-      expect(comments).toHaveLength(10)
+      .get('/api/articles/1/comments?limit=5')
+      expect(comments).toHaveLength(5)
   });
   //fix these two
   it('requesting page 2 should skip the first n results where n is limit', async () => {

@@ -1,4 +1,4 @@
-const { removeComment, updateComment } = require("../models/comments");
+const { removeComment, updateComment } = require("../models/comments.models");
 
 exports.deleteComment = (req, res, next) => {
   removeComment(req.params.comment_id)

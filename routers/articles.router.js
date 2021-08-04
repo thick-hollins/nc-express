@@ -7,13 +7,14 @@ const {
     postComment, 
     postArticle, 
     deleteArticle 
-} = require("../controllers/articles")
+} = require("../controllers/articles.controllers")
 
 const articlesRouter = express.Router()
 
 articlesRouter.route("/:article_id")
     .get(getArticleById)
     .patch(patchArticle)
+    .delete(deleteArticle)
 
 articlesRouter.route("/:article_id/comments")
     .get(getComments) 
@@ -22,6 +23,5 @@ articlesRouter.route("/:article_id/comments")
 articlesRouter.route('/')
     .get(getArticles)
     .post(postArticle)
-    .delete(deleteArticle)
 
 module.exports = articlesRouter

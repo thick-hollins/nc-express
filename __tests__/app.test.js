@@ -8,7 +8,7 @@ const { checkExists } = require('../db/utils/queries')
 beforeEach(() => seed(testData));
 afterAll(() => db.end());
 
-describe('GET not-a-route', () => {
+describe('GET /not-a-route', () => {
   it('status 404, relevant message', async () => {
     const { body: {msg} } = await request(app)
       .get("/not_a_route")
@@ -17,7 +17,7 @@ describe('GET not-a-route', () => {
   });
 });
 
-describe("GET api/topics", () => {
+describe("GET /api/topics", () => {
   it("status 200 - returns an object with an array of topic objects on a key of topics", async () => {
     const { body: { topics }} = await request(app)
       .get("/api/topics")
@@ -31,6 +31,35 @@ describe("GET api/topics", () => {
       });
   });
 })
+
+describe('POST /api/topics', () => {
+  it('should add a topic and respond with the added topic', async () => {
+    testReq = {
+      slug: 'hailstorms',
+      description: 'sleet'
+    }
+    const { body: { topic } } = await request(app)
+      .post('/api/topics')
+      .expect(201)
+      .send(testReq)
+    expect(topic).toEqual(
+      expect.objectContaining({
+        slug: expect.any(String),
+        description: expect.any(String)
+        })
+    )
+  });
+  it('responds with 400 if a field is missing on request', async () => {
+    testReq = {
+      slug: 'butter'
+    }
+    const { body: { msg } } = await request(app)
+      .post('/api/topics')
+      .expect(400)
+      .send(testReq)
+    expect(msg).toBe('Bad request - missing field(s)');
+  });
+});
 
 describe('GET api/articles/:article_id', () => {
   it('status 200 - returns an object with the relevant article', async () => {
@@ -283,6 +312,26 @@ describe('POST /api/articles', () => {
   });
 });
 
+describe('DELETE /api/articles/:article_id', () => {
+  it('deletes an article by id param, status 204', async () => {
+    await request(app)
+      .delete('/api/articles/3')
+      .expect(204)
+  });  
+  it('non-existant article_id, 404', async () => {
+    const { body: { msg } } = await request(app)
+      .delete('/api/articles/399')
+      .expect(404)
+    expect(msg).toBe('Resource not found')
+  });  
+  it('malformed article id, 400', async () => {
+    const { body: { msg } } = await request(app)
+      .delete('/api/articles/goodbye')
+      .expect(400)
+    expect(msg).toBe('Bad request - invalid data type')
+  });  
+});
+
 describe('GET /api/articles/:article_id/comments', () => {
   it('responds with all commment objects relating to the article_id parameter', async () => {
     const { body: { comments }} = await request(app)
@@ -396,7 +445,7 @@ describe('DELETE /api/comments/:comment_id', () => {
 });
 
 describe('GET /api/users', () => {
-  it('should ', async () => {
+  it('should respond with an array of all users', async () => {
     const { body: { users }} = await request(app)
     .get("/api/users")
     .expect(200)
@@ -462,9 +511,8 @@ describe('PATCH /api/comments/:comment_id', () => {
   }); 
 });
 
-// finish this test / task
 describe('GET /api/', () => {
-  it('should ', async () => {
+  it('should serve up an object with keys describing endpoints', async () => {
     const { body: { endpoints } } = await request(app)
     .get("/api/")
     .expect(200)
@@ -472,11 +520,5 @@ describe('GET /api/', () => {
       expect.objectContaining({
       'GET /api': expect.any(Object)
       }))
-  });
-});
-
-xdescribe('checkExists', () => {
-  it('should respond with 404 given non existant value in the database in a valid table and col', async () => {
-    await expect(checkExists('topics', 'slug', 'mitch')).rejects
   });
 });

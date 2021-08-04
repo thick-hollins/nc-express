@@ -379,3 +379,8 @@ Should:
 Respond with:
 
 - status 204 and no content
+
+tasks:
+change default sort according to sort field
+test checkExists - mock
+finish endpoints json

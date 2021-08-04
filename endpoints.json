@@ -10,7 +10,7 @@
     }
   },
   "GET /api/articles": {
-    "description": "serves an array of all topics",
+    "description": "serves an array of all articles",
     "queries": ["author", "topic", "sort_by", "order"],
     "exampleResponse": {
       "articles": [
@@ -19,7 +19,86 @@
           "topic": "cooking",
           "author": "weegembump",
           "body": "Text from the article..",
-          "created_at": 1527695953341
+          "created_at": 1527695953341,
+          "votes": 0,
+          "comment_count": 5
+        }
+      ]
+    }
+  },
+  "GET /api/articles/:article_id": {
+    "description": "serves an single article object",
+    "queries": [],
+    "exampleResponse": {
+      "article": [
+        {
+          "title": "Seafood substitutions are increasing",
+          "topic": "cooking",
+          "author": "weegembump",
+          "body": "Text from the article..",
+          "created_at": 1527695953341,
+          "votes": 0,
+          "comment_count": 5
+        }
+      ]
+    }
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "updates an article's vote field and serves object",
+    "queries": [],
+    "exampleRequest": {
+      "inc-votes": 1
+    },
+    "exampleResponse": {
+      "article": [
+        {
+          "title": "Seafood substitutions are increasing",
+          "topic": "cooking",
+          "author": "weegembump",
+          "body": "Text from the article..",
+          "created_at": 1527695953341,
+          "votes": 1,
+          "comment_count": 5
+        }
+      ]
+    }
+  },
+  "GET /api/articles/:article_id/comments": {
+    "description": "serves an array of all comments on one article",
+    "queries": [],
+    "exampleResponse": {
+      "comments": [
+        { 
+          "article_id": 2, 
+          "comment_id": 8, 
+          "votes": 5, 
+          "created_at": 1527695953341, 
+          "author": "Northcoder1", 
+          "body": "My Post!" 
+        }
+      ]
+    }
+  },
+  "POST /api/articles/:article_id/comments": {
+    "description": "adds a comment and serves it back to the user",
+    "queries": [],
+    "exampleRequest": {
+      "comment": [
+        { 
+          "author": "Northcoder1", 
+          "body": "My Post!" 
+        }
+      ]
+    }
+    "exampleResponse": {
+      "comment": [
+        { 
+          "article_id": 2, 
+          "comment_id": 8, 
+          "votes": 5, 
+          "created_at": 1527695953341, 
+          "author": "Northcoder1", 
+          "body": "My Post!" 
         }
       ]
     }

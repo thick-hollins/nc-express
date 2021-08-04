@@ -93,9 +93,6 @@ describe('PATCH /api/articles/:article_id', () => {
           expect.objectContaining({ votes: 1 })
       )
   });  
-});
-
-describe('PATCH /api/articles/:article_id', () => {
   it('rejects with 404 given non-existant ID', async () => {
     const { body: { msg } } = await request(app)
     .patch('/api/articles/200').expect(404)
@@ -113,7 +110,7 @@ describe('PATCH /api/articles/:article_id', () => {
     .patch('/api/articles/2').expect(400)
     .send({ inc_votes: 'Leeds' })
       expect(msg).toBe('Bad request - invalid data type')
-  });  
+  }); 
 });
 
 describe('GET /api/articles', () => {
@@ -252,12 +249,51 @@ describe('GET /api/articles/:article_id/comments', () => {
   });
 });
 
-xdescribe('GET /api/', () => {
+describe('POST /api/articles/:article_id/comments', () => {
+  it('take a request with username and body and respond with the created comment', async () => {
+    const testPost = {username: "icellusedkars", body: "here is my interesting post"}
+    const { body: { comment } } = await request(app)
+      .post('/api/articles/3/comments')
+      .expect(201)
+      .send(testPost)
+    expect(comment).toEqual(
+      expect.objectContaining({
+      comment_id: expect.any(Number),
+      author: expect.any(String),
+      article_id: expect.any(Number),
+      created_at: expect.any(String),
+      body: expect.any(String)
+      })
+   );
+  });
+  it('responds with 400 if a field is missing on request', async () => {
+    const testPost = {username: "icellusedkars"}
+    const { body: { msg } } = await request(app)
+      .post('/api/articles/4/comments')
+      .expect(400)
+      .send(testPost)
+    expect(msg).toBe('Bad request - missing field(s)');
+  });
+  it('responds with 400 if a non-existant username', async () => {
+    const testPost = {username: "not_user", body: "here is my interesting post"}
+    const { body: { msg } } = await request(app)
+      .post('/api/articles/4/comments')
+      .expect(400)
+      .send(testPost)
+    expect(msg).toBe('Bad request');
+  });
+});
+
+// finish this test / task
+describe('GET /api/', () => {
   it('should ', async () => {
-    const endpoints = await request(app)
+    const { body: { endpoints } } = await request(app)
     .get("/api/")
     .expect(200)
-    expect(endpoints).toEqual()
+    expect(endpoints).toEqual(
+      expect.objectContaining({
+      'GET /api': expect.any(Object)
+      }))
   });
 });
 

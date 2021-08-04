@@ -43,8 +43,10 @@ exports.updateArticle = async (article_id, inc_votes) => {
     }
   return article.rows[0]
 }
+
 // DEFAULT ORDER - should be different depending on column
-exports.selectArticles = async queries => {
+
+exports.selectArticles = async (queries) => {
   const {
     sort_by = 'created_at',
     order = 'desc',
@@ -106,4 +108,20 @@ exports.selectComments = async article_id => {
       await checkExists('articles', 'article_id', article_id)
     }
   return comments.rows
+}
+
+exports.insertComment = async (article_id, newComment) => {
+  const {username, body} = newComment
+  if (!username || !body) {
+    return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
+  }
+  const comment = await db
+    .query(`
+    INSERT INTO comments
+      (article_id, author, body)
+    VALUES
+      ($1, $2, $3)
+    RETURNING *;
+    `, [article_id, username, body])
+return comment.rows[0]
 }

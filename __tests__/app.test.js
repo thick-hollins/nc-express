@@ -209,11 +209,13 @@ describe('GET /api/articles', () => {
       expect(articles).toHaveLength(10)
   });
   it('requesting page 2 should skip the first n results where n is limit', async () => {
-    const { body: { articles } } = await request(app).get('/api/articles?sort_by=article_id&order=asc&page=2&limit=2')
+    const { body: { articles } } = await request(app)
+      .get('/api/articles?sort_by=article_id&order=asc&page=2&limit=2')
       expect(articles[0].article_id).toBe(3)
   });
   it('requesting page 3 should skip the first n results where n is limit * 2', async () => {
-    const { body: { articles } } = await request(app).get('/api/articles?sort_by=article_id&order=asc&page=3&limit=2')
+    const { body: { articles } } = await request(app)
+      .get('/api/articles?sort_by=article_id&order=asc&page=3&limit=2')
       expect(articles[0].article_id).toBe(5)
   })
 });
@@ -221,7 +223,7 @@ describe('GET /api/articles', () => {
 describe('GET /api/articles/:article_id/comments', () => {
   it('responds with all commment objects relating to the article_id parameter', async () => {
     const { body: { comments }} = await request(app)
-    .get("/api/articles/1/comments")
+    .get("/api/articles/1/comments?limit=15")
     .expect(200)
     comments.forEach((comment) => {
       expect(comment).toMatchObject({
@@ -252,6 +254,27 @@ describe('GET /api/articles/:article_id/comments', () => {
     .expect(400)
     expect(msg).toBe('Bad request - invalid data type')
   });
+  it('should return maximum 5 results by default', async () => {
+    const { body: { comments } } = await request(app)
+      .get('/api/articles/1/comments')
+      expect(comments).toHaveLength(5)
+  });
+  it('should allow a custom limit', async () => {
+    const { body: { comments } } = await request(app)
+      .get('/api/articles/1/comments?limit=10')
+      expect(comments).toHaveLength(10)
+  });
+  //fix these two
+  it('requesting page 2 should skip the first n results where n is limit', async () => {
+    const { body: { comments } } = await request(app)
+      .get('/api/articles/1/comments?limit=2&page=2')
+      expect(comments[0].comment_id).toBe(4)
+  });
+  it('requesting page 3 should skip the first n results where n is limit * 2', async () => {
+    const { body: { comments } } = await request(app)
+      .get('/api/articles/1/comments?limit=2&page=3')
+      expect(comments[0].comment_id).toBe(6)
+  })
 });
 
 describe('POST /api/articles/:article_id/comments', () => {

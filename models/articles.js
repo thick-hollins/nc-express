@@ -97,7 +97,7 @@ exports.selectArticles = async (queries) => {
   return mapCols(articles.rows, col => parseInt(col), 'comment_count')
 }
 
-exports.selectComments = async article_id => {
+exports.selectComments = async (article_id, { limit = 5, page = 1 }) => {
   const comments = await db
     .query(`
     SELECT
@@ -109,7 +109,14 @@ exports.selectComments = async article_id => {
       body 
     FROM comments
     WHERE article_id = $1
-    ;`, [article_id])
+    ORDER BY comment_id
+    LIMIT $2
+    OFFSET $3
+    ;`, [
+      article_id,
+      limit,
+      (page - 1) * limit 
+    ])
     if (!comments.rows.length) {
       await checkExists('articles', 'article_id', article_id)
     }

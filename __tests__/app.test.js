@@ -30,18 +30,7 @@ describe("GET api/topics", () => {
         });
       });
   });
-  it("status 200 - returns an object with the relevant article", async () => {
-    const { body: { topics }} = await request(app)
-      .get("/api/topics")
-      .expect(200)
-      topics.forEach((topic) => {
-        expect(topic).toMatchObject({
-          description: expect.any(String),
-          slug: expect.any(String),
-        });
-      });
-  });
-});
+})
 
 describe('GET api/articles/:article_id', () => {
   it('status 200 - returns an object with the relevant article', async () => {
@@ -281,6 +270,58 @@ describe('POST /api/articles/:article_id/comments', () => {
       .expect(400)
       .send(testPost)
     expect(msg).toBe('Bad request');
+  });
+});
+
+describe('DELETE /api/comments/:comment_id', () => {
+  it('deletes a comment by id param, status 204', async () => {
+    await request(app)
+      .delete('/api/comments/3')
+      .expect(204)
+  });  
+  it('non-existant comment_id, 404', async () => {
+    const { body: { msg } } = await request(app)
+      .delete('/api/comments/399')
+      .expect(404)
+    expect(msg).toBe('Resource not found')
+  });  
+  it('malformed comment id, 400', async () => {
+    const { body: { msg } } = await request(app)
+      .delete('/api/comments/goodbye')
+      .expect(400)
+    expect(msg).toBe('Bad request - invalid data type')
+  });  
+});
+
+describe('GET /api/users', () => {
+  it('should ', async () => {
+    const { body: { users }} = await request(app)
+    .get("/api/users")
+    .expect(200)
+    expect(users).toBeInstanceOf(Array);
+    users.forEach((user) => {
+      expect(user).toMatchObject({
+        name: expect.any(String),
+        avatar_url: expect.any(String),
+        username: expect.any(String),
+      });
+    });
+  });
+});
+
+describe('GET /api/users/:username', () => {
+  it('responds with relevant user object', async () => {
+    const { body: { user } } = await request(app)
+    .get('/api/users/rogersop')
+    .expect(200)
+    expect(user.username).toBe('rogersop')
+    expect(user).toEqual(
+        expect.objectContaining({
+        username: expect.any(String),
+        avatar_url: expect.any(String),
+        name: expect.any(String),
+        })
+    );
   });
 });
 

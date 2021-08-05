@@ -373,8 +373,8 @@ describe('Articles / by ID / comments', () => {
         .get('/api/articles/1/comments?limit=5')
         expect(comments).toHaveLength(5)
     });
-    //fix these two
     it('requesting page 2 should skip the first n results where n is limit', async () => {
+      // 
       const { body: { comments } } = await request(app)
         .get('/api/articles/1/comments?limit=2&page=2')
         expect(comments[0].comment_id).toBe(4)

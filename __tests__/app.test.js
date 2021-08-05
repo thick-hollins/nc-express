@@ -512,6 +512,96 @@ describe('Users + Users / by ID ', () => {
   });
 });
 
+describe('Users / signup / login / logout', () => {
+  describe('POST /api/users/signup', () => {
+    it('should add a user and respond with added user', async () => {
+      testReq = { 
+        username: 'sonic_hedgehog',
+        name: 'Joe Warburton',
+        avatar_url: 'http://img.url',
+        password: 'pizza'
+      }
+      const { body: { user } } = await request(app)
+      .post('/api/users/signup')
+      .expect(201)
+      .send(testReq)
+    expect(user).toEqual(
+      expect.objectContaining({
+        username: expect.any(String),
+        avatar_url: expect.any(String),
+        name: expect.any(String),
+        hash: expect.any(String)
+        })
+      )
+    });
+  });
+  describe('POST /api/users/login', () => {
+    it('should log in a user with correct password', async () => {
+    const testUser = { 
+        username: 'logic1000',
+        name: 'Susanne Kraft',
+        avatar_url: 'http://img.url',
+        password: 'octopus'
+      }
+      const { body: { user: newUser }} = await request(app)
+        .post('/api/users/signup')
+        .send(testUser)
+      const testLogin = {
+        username: 'logic1000',
+        password: 'octopus',
+        salt: newUser.salt
+      }
+      const loggedIn = await request(app)
+        .post('/api/users/login')
+        .send(testLogin)
+        .expect(201)
+      expect(loggedIn.body)
+    });
+    it('should refuse login with an incorrect password', async () => {
+    const testUser = { 
+        username: 'logic1000',
+        name: 'Susanne Kraft',
+        avatar_url: 'http://img.url',
+        password: 'octopus'
+      }
+      const { body: { user: newUser }} = await request(app)
+        .post('/api/users/signup')
+        .send(testUser)
+      const testLogin = {
+        username: 'logic1000',
+        password: 'squid',
+        salt: newUser.salt
+      }
+      const loggedIn = await request(app)
+        .post('/api/users/login')
+        .send(testLogin)
+        .expect(400)
+      expect(loggedIn.body.msg).toBe('Incorrect password')
+    });
+    it('should refuse login with an non-existant username', async () => {
+    const testUser = { 
+        username: 'logic1000',
+        name: 'Susanne Kraft',
+        avatar_url: 'http://img.url',
+        password: 'octopus'
+      }
+      const { body: { user: newUser }} = await request(app)
+        .post('/api/users/signup')
+        .send(testUser)
+      const testLogin = {
+        username: 'logic100',
+        password: 'squid',
+        salt: newUser.salt
+      }
+      const loggedIn = await request(app)
+        .post('/api/users/login')
+        .send(testLogin)
+        .expect(400)
+      expect(loggedIn.body.msg).toBe('User not found')
+    });
+  });
+});
+
 describe('Misc', () => {
   describe('GET /api/', () => {
     it('should serve up an object with keys describing endpoints', async () => {

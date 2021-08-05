@@ -5,7 +5,7 @@ const {
   renameKeys,
 } = require("../db/utils/data-manipulation")
 const {
-  mapCols
+  mapCols, checkExists
 } = require('../db/utils/queries')
 
 describe("orderValues", () => {
@@ -260,6 +260,11 @@ describe('mapCols', () => {
 });
 xdescribe('checkExists', () => {
   it('should respond with 404 given non existant value in the database in a valid table and col', async () => {
-    await expect(checkExists('topics', 'slug', 'mitch')).rejects
+    const format = require('pg-format')
+    const db = {}
+    expect.assertions(1);
+    db.query = jest.fn()
+    const output = await checkExists('topics', 'slug', 'mitch')
+    console.log(db.query.mock)
   });
 });

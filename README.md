@@ -1,11 +1,3 @@
-  - [ ] Link to hosted version
-  - [ ] Write a summary of what the project is
-  - [ ] Provide clear instructions of how to clone, install dependencies, seed local database, and run tests
-  - [ ] Include information about how to create the two `.env` files
-  - [ ] Specify minimum versions of `Node.js` and `Postgres` needed to run the project
-
-  https://nc-express.herokuapp.com/api
-
 # REST API: nc-express 
 
 A server running this app allows users to post articles, comment on articles, and up- and down-vote articles and comments.
@@ -24,4 +16,28 @@ To install its dependencies run
 
     npm install
 
-To create the local PSQL database
+Install [PostgreSQL](https://www.postgresql.org/) locally. To initialise the PSQL database, create a `setup.sql` file in the `db` directory in the foillowing format, replacing `test_database_name` and `development_database_name` with your chosen names respectively
+
+```
+DROP DATABASE IF EXISTS test_database_name;
+DROP DATABASE IF EXISTS development_database_name;
+
+CREATE DATABASE test_database_name;
+CREATE DATABASE development_database_name;
+```
+
+The following script will then create the database
+
+    npm run setup-dbs
+
+To provide PSQL and the testing package the name of your database, you must create a `.env.test` file containing `PGDATABASE=test_database_name` and a `.env.devlopment` file conmtaining `PGDATABASE=development_database_name`
+
+The development database is seeded by running 
+
+    npm run seed
+
+The test suite is run with
+
+    npm run test
+
+- [ ] Specify minimum versions of `Node.js` and `Postgres` needed to run the project

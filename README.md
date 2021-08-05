@@ -24,11 +24,4 @@ To install its dependencies run
 
     npm install
 
-To create the local PSQL database, first use
-
-    npm run setup-dbs
-
-then
-
-    npm run seed
-
+To create the local PSQL database

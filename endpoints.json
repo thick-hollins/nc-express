@@ -9,6 +9,17 @@
       "topics": [{ "slug": "football", "description": "Footie!" }]
     }
   },
+  "POST /api/topics": {
+    "description": "adds a topic and serves it to the user",
+    "queries": [],
+    "exampleRequest": { 
+          "slug": "cyclocross", 
+          "description": "Belgian sports"
+    },
+    "exampleResponse": {
+      "topic": { "slug": "cyclocross", "description": "Belgian sports" }
+    }
+  },
   "GET /api/articles": {
     "description": "serves an array of all articles",
     "queries": ["author", "topic", "sort_by", "order"],
@@ -24,6 +35,20 @@
           "comment_count": 5
         }
       ]
+    }
+  },
+  "POST /api/articles": {
+    "description": "adds an article and serves it to the user",
+    "queries": [],
+    "exampleResponse": {
+      "article": {
+          "title": "Seafood substitutions are increasing",
+          "topic": "cooking",
+          "author": "weegembump",
+          "body": "Text from the article..",
+          "created_at": 1527695953341,
+          "votes": 0
+        }
     }
   },
   "GET /api/articles/:article_id": {
@@ -42,6 +67,11 @@
         }
       ]
     }
+  },
+  "DELETE /api/articles/:article_id": {
+    "description": "deletes a single article",
+    "queries": [],
+    "exampleResponse": { "code" : 204 } 
   },
   "PATCH /api/articles/:article_id": {
     "description": "updates an article's vote field and serves object",
@@ -82,13 +112,9 @@
   "POST /api/articles/:article_id/comments": {
     "description": "adds a comment and serves it back to the user",
     "queries": [],
-    "exampleRequest": {
-      "comment": [
-        { 
+    "exampleRequest": { 
           "author": "Northcoder1", 
           "body": "My Post!" 
-        }
-      ]
     },
     "exampleResponse": {
       "comment": [
@@ -101,6 +127,56 @@
           "body": "My Post!" 
         }
       ]
+    }
+  },
+  "PATCH /api/articles/:article_id/comments": {
+    "description": "updates a comment's vote field and serves comment to the user",
+    "queries": [],
+    "exampleRequest": { 
+          "inc_votes": -1
+    },
+    "exampleResponse": {
+      "comment": [
+        { 
+          "article_id": 2, 
+          "comment_id": 8, 
+          "votes": 4, 
+          "created_at": 1527695953341, 
+          "author": "Northcoder1", 
+          "body": "My Post!" 
+        }
+      ]
+    }
+  },
+  "DELETE /api/articles/:article_id/comments": {
+    "description": "deletes a single comment",
+    "queries": [],
+    "exampleResponse": {
+      "code": 204
+    }
+  },
+  "GET /api/users": {
+    "description": "serves an array of all users",
+    "queries": [],
+    "exampleResponse": {
+      "users": [
+        { 
+          "username": "N0rthc0der", 
+          "avatar_url": "http://north.coder/img.jpg",
+          "name": "Fred Dibnah"
+          }
+      ]
+    }
+  },
+  "GET /api/users/:user_id": {
+    "description": "serves a single user object",
+    "queries": [],
+    "exampleResponse": {
+      "user": { 
+        "username": "N0rthc0der", 
+        "avatar_url": "http://north.coder/img.jpg",
+        "name": "Fred Dibnah"
+      }
     }
   }
 }

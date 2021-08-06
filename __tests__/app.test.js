@@ -303,7 +303,7 @@ describe('Articles / by ID', () => {
             expect.objectContaining({ votes: 1 })
         )
     });  
-    it('increments an articles votes by given amount, responds with article', async () => {
+    it('decrements an articles votes by given amount, responds with article', async () => {
       const { body: { article } } = await request(app)
       .patch('/api/articles/1')
       .expect(200)
@@ -312,28 +312,37 @@ describe('Articles / by ID', () => {
             expect.objectContaining({ votes: 99 })
         )
     });  
+    it('edits an article body, responds with article', async () => {
+      const { body: { article } } = await request(app)
+      .patch('/api/articles/1')
+      .expect(200)
+      .send({ body: 'new_text' })
+        expect(article).toEqual(
+            expect.objectContaining({ body: 'new_text' })
+        )
+    });  
     it('rejects with 404 given non-existant ID', async () => {
       const { body: { msg } } = await request(app)
       .patch('/api/articles/200')
       .expect(404)
-      .send({ inc_votes: 1 })
+      .send({ inc_votes: 1, body: 'new_text' })
         expect(msg).toBe('Resource not found')
     });  
-    it('rejects with 400 given request without inc_vote', async () => {
+    it('rejects with 400 given request without inc_vote or body', async () => {
       const { body: { msg } } = await request(app)
       .patch('/api/articles/2')
       .expect(400)
       .send({})
-        expect(msg).toBe('Bad request - invalid vote')
+        expect(msg).toBe('Bad request - missing field(s)')
     });  
     it('rejects with 400 given inc_vote of 0', async () => {
       const { body: { msg } } = await request(app)
       .patch('/api/articles/2')
       .expect(400)
-      .send({ inc_vote: 0})
+      .send({ inc_votes: 0})
         expect(msg).toBe('Bad request - invalid vote')
     });  
-    it('rejects with 400 given invalid data type', async () => {
+    it('rejects with 400 given invalid data type for inc_votes', async () => {
       const { body: { msg } } = await request(app)
       .patch('/api/articles/2')
       .expect(400)
@@ -513,17 +522,33 @@ describe('Comments / by ID', () => {
             expect.objectContaining({ votes: 15 })
         )
     });  
+    it('decrements a comments votes by given amount, responds with comment', async () => {
+      const { body: { comment } } = await request(app)
+      .patch('/api/comments/2').expect(200)
+      .send({ inc_votes: -1 })
+        expect(comment).toEqual(
+            expect.objectContaining({ votes: 13 })
+        )
+    });  
+    it('edits a comment body, responds with comment', async () => {
+      const { body: { comment } } = await request(app)
+      .patch('/api/comments/2').expect(200)
+      .send({ body: 'newtext' })
+        expect(comment).toEqual(
+            expect.objectContaining({ body: 'newtext' })
+        )
+    });  
     it('rejects with 404 given non-existant ID', async () => {
       const { body: { msg } } = await request(app)
       .patch('/api/comments/200').expect(404)
       .send({ inc_votes: 1 })
         expect(msg).toBe('Resource not found')
     });  
-    it('rejects with 400 given request without inc_vote', async () => {
+    it('rejects with 400 given request without inc_vote or body', async () => {
       const { body: { msg } } = await request(app)
       .patch('/api/comments/2').expect(400)
       .send({})
-        expect(msg).toBe('Bad request - invalid vote')
+        expect(msg).toBe('Bad request - missing field(s)')
     });  
     it('rejects with 400 given inc_vote of 0', async () => {
       const { body: { msg } } = await request(app)
@@ -531,7 +556,7 @@ describe('Comments / by ID', () => {
       .send({ inc_votes: 0 })
         expect(msg).toBe('Bad request - invalid vote')
     });  
-    it('rejects with 400 given invalid data type', async () => {
+    it('rejects with 400 given invalid data type on inc vote', async () => {
       const { body: { msg } } = await request(app)
       .patch('/api/comments/2').expect(400)
       .send({ inc_votes: 'Leeds' })

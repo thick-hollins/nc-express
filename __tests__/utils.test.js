@@ -3,9 +3,10 @@ const {
   makeLookup,
   updateKeyValue,
   renameKeys,
+  mapCols
 } = require("../db/utils/data-manipulation")
 const {
-  mapCols, checkExists
+  checkExists
 } = require('../db/utils/queries')
 
 describe("orderValues", () => {

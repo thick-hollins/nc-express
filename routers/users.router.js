@@ -7,6 +7,7 @@ usersRouter.route("/")
 
 usersRouter.route('/:username')
     .get(getUser)
+    .patch(patchUser)
 
 usersRouter.route('/signup')
     .post(postUser)

@@ -28,20 +28,22 @@ exports.selectArticleById = async article_id => {
   return mapCols(article.rows, col => parseInt(col), 'comment_count')[0]
 }
 
-exports.updateArticle = async (article_id, inc_votes) => {
-  if (!inc_votes) {
+exports.updateArticle = async (article_id, { inc_votes, body }) => {
+  await checkExists('articles', 'article_id', article_id)
+  if (inc_votes === 0) {
     return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
+  }
+  if (!inc_votes && !body) {
+    return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
   }
   const article = await db
     .query(`
     UPDATE articles
-        SET votes = votes + $1
-        WHERE article_id = $2
+        ${inc_votes? 'SET votes = votes + ' + f.literal(inc_votes): ''}
+        ${body? 'SET body = ' + f.literal(body): ''}
+        WHERE article_id = ${f.literal(article_id)}
         RETURNING *;
-    ;`, [inc_votes, article_id])
-    if (!article.rows.length) {
-      return Promise.reject({status: 404, msg: 'Resource not found'})
-    }
+    ;`)
   return article.rows[0]
 }
 

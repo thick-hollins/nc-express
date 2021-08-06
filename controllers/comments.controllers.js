@@ -9,7 +9,7 @@ exports.deleteComment = (req, res, next) => {
 }
 
 exports.patchComment = (req, res, next) => {
-  updateComment(req.params.comment_id, req.body.inc_votes)
+  updateComment(req.params.comment_id, req.body)
     .then((comment) => {
       res.status(200).send({ comment })
     })

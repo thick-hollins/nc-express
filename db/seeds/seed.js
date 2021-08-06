@@ -18,14 +18,14 @@ const seed = async data => {
   await db.query(`
     CREATE TABLE topics (
       slug VARCHAR(100) PRIMARY KEY,
-      description VARCHAR(300)
+      description VARCHAR(300) NOT NULL
     );`)
   
   await db.query(`
     CREATE TABLE users (
       username VARCHAR(100) PRIMARY KEY,
-      avatar_url VARCHAR(230),
-      name VARCHAR(100),
+      avatar_url VARCHAR(230) NOT NULL,
+      name VARCHAR(100) NOT NULL,
       hash VARCHAR(256),
       salt VARCHAR(100)
     );`)
@@ -34,21 +34,21 @@ const seed = async data => {
     CREATE TABLE articles (
       article_id SERIAL PRIMARY KEY,
       title VARCHAR(150) NOT NULL,
-      body TEXT,
-      votes INT DEFAULT 0,
+      body TEXT NOT NULL,
+      votes INT DEFAULT 0 NOT NULL,
       topic VARCHAR(100) REFERENCES topics(slug) NOT NULL,
-      author VARCHAR(100) REFERENCES users(username),
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      author VARCHAR(100) REFERENCES users(username) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     );`)
   
   await db.query(`
     CREATE TABLE comments (
       comment_id SERIAL PRIMARY KEY,
-      author VARCHAR(100) REFERENCES users(username),
-      article_id INT REFERENCES articles(article_id) NOT NULL,
-      votes INT DEFAULT 0,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      body TEXT
+      author VARCHAR(100) REFERENCES users(username) NOT NULL,
+      article_id INT REFERENCES articles(article_id) ON DELETE CASCADE NOT NULL,
+      votes INT DEFAULT 0 NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+      body TEXT NOT NULL
     );`)
 
   await db.query(`

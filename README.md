@@ -16,7 +16,7 @@ To install its dependencies run
 
     npm install
 
-Install [PostgreSQL](https://www.postgresql.org/) locally. To initialise the PSQL database, create a `setup.sql` file in the `db` directory in the foillowing format, replacing `test_database_name` and `development_database_name` with your chosen names respectively
+Install [PostgreSQL](https://www.postgresql.org/) locally. To initialise the PSQL database, create a `setup.sql` file in the `db` directory in the following format, replacing `test_database_name` and `development_database_name` with your chosen names for each
 
 ```
 DROP DATABASE IF EXISTS test_database_name;
@@ -40,4 +40,7 @@ The test suite is run with
 
     npm run test
 
-- [ ] Specify minimum versions of `Node.js` and `Postgres` needed to run the project
+## Global dependencies
+
+* `node.js v14.17.1`
+* `PostgreSQL v12.7`

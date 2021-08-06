@@ -51,9 +51,6 @@ describe("makeLookup", () => {
       slogan: "Cloned context-sensitive migration",
     },
   ];
-  test("Returns a new array", () => {
-    expect(makeLookup(testData, "shop_name", "shop_id")).not.toBe(testData);
-  });
   test("Does not mutate original array", () => {
     makeLookup(testData, "shop_name", "shop_id");
     expect(testData).toEqual([
@@ -235,7 +232,7 @@ describe("renameKeys", () => {
   });
 });
 describe('mapCols', () => {
-  objArray = [{a: 1, b: 2, c: 3}, {a: 1, b: 2}]
+  const objArray = [{a: 1, b: 2, c: 3}, {a: 1, b: 2}]
   it('applies a callback function to properties of objects in an array under specified keys', () => {
     expect(mapCols(objArray, x => x * 2, 'a')).toEqual([{a: 2, b: 2, c: 3}, {a: 2, b: 2}])
   });

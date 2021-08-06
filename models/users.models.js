@@ -43,7 +43,6 @@ exports.login = async ({ username, password }) => {
     return Promise.reject({status: 400, msg: 'Incorrect password'})
   } else {
     const accessToken = jwt.sign({ username: username }, process.env.secret)
-    console.log(accessToken)
     return { accessToken }
   }
 

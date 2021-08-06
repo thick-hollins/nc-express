@@ -1,5 +1,6 @@
 const db = require("../db/connection.js")
-const { mapCols, checkExists } = require('../db/utils/queries')
+const { checkExists } = require('../db/utils/queries')
+const { mapCols } = require('../db/utils/data-manipulation')
 const f = require('pg-format')
 
 exports.selectArticleById = async article_id => {
@@ -13,10 +14,10 @@ exports.selectArticleById = async article_id => {
       topic,
       articles.created_at,
       articles.votes,
-      COUNT(articles.article_id) AS
+      COUNT(comments.article_id) AS
         comment_count
     FROM articles
-    JOIN comments
+    LEFT JOIN comments
     ON articles.article_id = comments.article_id
     WHERE articles.article_id = $1
     GROUP BY articles.article_id
@@ -55,7 +56,8 @@ exports.selectArticles = async (queries) => {
   } = queries
   if (!['article_id', 'author', 'title', 'topic', 'created_at', 'votes', 'comment_count']
         .includes(sort_by) || 
-      !['asc', 'desc'].includes(order)) {
+      !['asc', 'desc'].includes(order) ||
+      !Number.isInteger(parseInt(limit))) {
     return Promise.reject({status: 400, msg: 'Bad request - invalid sort'})
   }
   const articles = await db
@@ -126,6 +128,8 @@ exports.insertComment = async (article_id, newComment) => {
   if (!username || !body) {
     return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
   }
+  await checkExists('articles', 'article_id', article_id)
+  await checkExists('users', 'username', username)
   const comment = await db
     .query(`
     INSERT INTO comments

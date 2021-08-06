@@ -623,6 +623,63 @@ describe('Users + Users / by ID ', () => {
       expect(msg).toBe('Resource not found')
     });  
   });
+  describe('PATCH /api/users/:username', () => {
+    it('updates username, responds with user object', async () => {
+      const { body: { user } } = await request(app)
+      .patch('/api/users/rogersop').expect(200)
+      .send({ username: 'my_new_username' })
+        expect(user).toEqual(
+            expect.objectContaining({ username: 'my_new_username' })
+        )
+    });
+    it('updates name, responds with user object', async () => {
+      const { body: { user } } = await request(app)
+      .patch('/api/users/rogersop').expect(200)
+      .send({ name: 'my_new_name' })
+        expect(user).toEqual(
+            expect.objectContaining({ name: 'my_new_name' })
+        )
+    });
+    it('updates avatar_url, responds with user object', async () => {
+      const { body: { user } } = await request(app)
+      .patch('/api/users/rogersop').expect(200)
+      .send({ username: 'http://my.new.avatar' })
+        expect(user).toEqual(
+            expect.objectContaining({ username: 'http://my.new.avatar' })
+        )
+    });
+    it('rejects with 404 given non-existant username', async () => {
+      const { body: { msg } } = await request(app)
+      .patch('/api/users/not_a_user').expect(404)
+      .send({ 
+        username: 'my_new_username',
+        name: 'New Name',
+        avatar_url: 'new.url'
+       })
+        expect(msg).toBe('Resource not found')
+    }); 
+    it('rejects with 400 given request without username name, or avatar url', async () => {
+      const { body: { msg } } = await request(app)
+      .patch('/api/users/rogersop').expect(400)
+      .send({})
+        expect(msg).toBe('Bad request - missing field(s)')
+    });
+    it('cascade updates author FKs  on comments and articles', async () => {
+      await request(app)
+        .patch('/api/users/butter_bridge').expect(200)
+        .send({ username: 'my_new_username' })
+      const res1 = await request(app)
+        .get('/api/articles/1')
+      const res2 = await request(app)
+        .get('/api/articles/1/comments')
+      expect(res1.body.article).toEqual(
+        expect.objectContaining({ author: 'my_new_username' })
+      )
+      expect(res2.body.comments[0]).toEqual(
+        expect.objectContaining({ author: 'my_new_username' })
+      )
+    });
+  });
 });
 
 describe('Users / signup / login / logout', () => {

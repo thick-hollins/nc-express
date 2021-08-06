@@ -1,5 +1,7 @@
 const db = require("../db/connection")
 const jwt = require('jsonwebtoken')
+const f = require('pg-format')
+const { checkExists } = require('../db/utils/queries')
 const {generateSalt, hashPassword, validPassword} = require('../db/utils/auth')
 
 exports.selectUsers = async () => {
@@ -15,6 +17,23 @@ exports.selectUser = async (username) => {
         return Promise.reject({status: 404, msg: 'Resource not found'})
     }
     return user.rows[0];
+}
+
+exports.updateUser = async (currentUsername, {username, name, avatar_url}) => {
+  await checkExists('users', 'username', currentUsername)
+  if (!username && !name && !avatar_url) {
+    return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
+  }
+  const user = await db
+    .query(`
+      UPDATE users
+      ${username? 'SET username =' + f.literal(username): ''}
+      ${name? 'SET name = ' + f.literal(name): ''}
+      ${avatar_url? 'SET body = ' + f.literal(avatar_url): ''}
+      WHERE username = ${f.literal(currentUsername)}
+      RETURNING *;
+      ;`)
+  return user.rows[0]
 }
 
 exports.insertUser = async ({ username, name, avatar_url, password }) => {

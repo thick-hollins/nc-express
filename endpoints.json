@@ -74,10 +74,11 @@
     "exampleResponse": { "code" : 204 } 
   },
   "PATCH /api/articles/:article_id": {
-    "description": "updates an article's vote field and serves object",
+    "description": "updates an article's vote field or body and serves object",
     "queries": [],
     "exampleRequest": {
-      "inc-votes": 1
+      "inc-votes": 1,
+      "body": "It's article time!"
     },
     "exampleResponse": {
       "article": [
@@ -85,7 +86,7 @@
           "title": "Seafood substitutions are increasing",
           "topic": "cooking",
           "author": "weegembump",
-          "body": "Text from the article..",
+          "body": "It's article time!",
           "created_at": 1527695953341,
           "votes": 1,
           "comment_count": 5
@@ -130,10 +131,11 @@
     }
   },
   "PATCH /api/articles/:article_id/comments": {
-    "description": "updates a comment's vote field and serves comment to the user",
+    "description": "updates a comment's vote field or body and serves comment to the user",
     "queries": [],
     "exampleRequest": { 
-          "inc_votes": -1
+          "inc_votes": -1,
+          "body": "Here is what I think..."
     },
     "exampleResponse": {
       "comment": [
@@ -143,7 +145,7 @@
           "votes": 4, 
           "created_at": 1527695953341, 
           "author": "Northcoder1", 
-          "body": "My Post!" 
+          "body": "Here is what I think..." 
         }
       ]
     }
@@ -176,6 +178,22 @@
         "username": "N0rthc0der", 
         "avatar_url": "http://north.coder/img.jpg",
         "name": "Fred Dibnah"
+      }
+    }
+  },
+  "PATCH /api/users/:user_id": {
+    "description": "serves a single user object",
+    "queries": [],
+    "exampleRequest": { 
+        "username": "S0uthc0der", 
+        "avatar_url": "http://north.coder/img_new.jpg",
+        "name": "Fred Astaire"
+    }
+    "exampleResponse": {
+      "user": { 
+        "username": "S0uthc0der", 
+        "avatar_url": "http://north.coder/img_new.jpg",
+        "name": "Fred Astaire"
       }
     }
   }

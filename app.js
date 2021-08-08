@@ -8,16 +8,21 @@ const {
   handleServerErrors,
 } = require('./errors.js')
 
-// app.use((req, res, next) => {
-//   console.log(req)
-//   const { authorization } = req.headers
-//   const token = authorization.split(' ')[1];
-//   try { 
-//     jwt.verify(token, process.env.JWT_SECRET) 
-//    } catch (err) { 
-//      next({ status: 401, msg: 'Unauthorised' })
-//   }
-// })
+app.use((req, res, next) => {
+  if (req.originalUrl === '/api/users/signup' || 
+      req.originalUrl === '/api/users/login') {
+    return next()
+  } else {
+    const { headers: { authorization } } = req  
+    try { 
+      const token = authorization.split(' ')[1]
+      jwt.verify(token, process.env.JWT_SECRET) 
+      } catch (err) { 
+        next({ status: 401, msg: 'Unauthorised' })
+    }
+  next()
+  }
+})
 
 app.use(express.json())
 

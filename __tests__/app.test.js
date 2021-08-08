@@ -10,12 +10,12 @@ beforeEach(() => seed(testData));
 beforeEach(async () => {
   const { body: { user } } = await request
     .post('/api/users/signup')
-    .expect(201)
     .send({ username: 'test_user', name: 'test', avatar_url: 'test', password: 'pizza' })
+    .expect(201)
   const { body: { accessToken } } = await request
     .post('/api/users/login')
-    .expect(200)
     .send({ username: 'test_user', password: 'pizza' })
+    .expect(200)
   request.set('Authorization', `BEARER ${accessToken}`)
 });
 afterAll(() => db.end());
@@ -147,19 +147,19 @@ describe('Articles', () => {
           expect(article.topic).toBe('mitch')
         });
     });
-    it('given existant topic with no linked articles, returns an empty array', async () => {
+    it('given existent topic with no linked articles, returns an empty array', async () => {
       const { body: { articles } } = await request
       .get('/api/articles?topic=paper')
       .expect(200)
       expect(articles).toEqual([])
     });
-    it('given existant author with no linked articles, returns an empty array', async () => {
+    it('given existent author with no linked articles, returns an empty array', async () => {
       const { body: { articles } } = await request
       .get('/api/articles?author=lurker')
       .expect(200)
       expect(articles).toEqual([])
     });
-    it('given well-formed but non-existant topic, responds with 404', async () => {
+    it('given well-formed but non-existent topic, responds with 404', async () => {
       const { body: { msg } } = await request
       .get('/api/articles?topic=tennis')
       .expect(404)
@@ -222,7 +222,7 @@ describe('Articles', () => {
         .send(testReq)
       expect(msg).toBe('Bad request - missing field(s)');
     });
-    it('responds with 400 if a non-existant topic', async () => {
+    it('responds with 400 if a non-existent topic', async () => {
       testReq = {
         author: 'butter_bridge', 
         title: 'buttermilk',
@@ -235,7 +235,7 @@ describe('Articles', () => {
         .send(testReq)
       expect(msg).toBe('Bad request');
     });
-    it('responds with 400 if a non-existant author', async () => {
+    it('responds with 400 if a non-existent author', async () => {
       testReq = {
         author: 'turgenev', 
         title: 'buttermilk',
@@ -286,7 +286,7 @@ describe('Articles / by ID', () => {
       .expect(200)
     expect(comment_count).toBe(0)
     });
-    it('status 404, well-formed but non-existant article ID', async () => {
+    it('status 404, well-formed but non-existent article ID', async () => {
       const { body: { msg } } = await request
         .get("/api/articles/899")
         .expect(404)
@@ -328,7 +328,7 @@ describe('Articles / by ID', () => {
             expect.objectContaining({ body: 'new_text' })
         )
     });  
-    it('rejects with 404 given non-existant ID', async () => {
+    it('rejects with 404 given non-existent ID', async () => {
       const { body: { msg } } = await request
       .patch('/api/articles/200')
       .expect(404)
@@ -375,7 +375,7 @@ describe('Articles / by ID', () => {
       .get('/api/articles/3/comments')
       .expect(404)
     });
-    it('non-existant article_id, 404', async () => {
+    it('non-existent article_id, 404', async () => {
       const { body: { msg } } = await request
         .delete('/api/articles/399')
         .expect(404)
@@ -408,13 +408,13 @@ describe('Articles / by ID / comments', () => {
         });
       });
     });
-    it('non-existant article ID gives 404', async () => {
+    it('non-existent article ID gives 404', async () => {
       const { body: { msg } } = await request
       .get('/api/articles/1000/comments')
       .expect(404)
       expect(msg).toBe('Resource not found')
     });
-    it('existant article ID with no comments gives 200 and empty array', async () => {
+    it('existent article ID with no comments gives 200 and empty array', async () => {
       const { body: { comments } } = await request
       .get('/api/articles/2/comments')
       .expect(200)
@@ -473,7 +473,7 @@ describe('Articles / by ID / comments', () => {
         .send(testPost)
       expect(msg).toBe('Bad request - missing field(s)');
     });
-    it('responds with 404 if a non-existant username', async () => {
+    it('responds with 404 if a non-existent username', async () => {
       const testPost = {username: "not_user", body: "here is my interesting post"}
       const { body: { msg } } = await request
         .post('/api/articles/4/comments')
@@ -489,7 +489,7 @@ describe('Articles / by ID / comments', () => {
       .send(testPost)
     expect(msg).toBe('Bad request - invalid data type')
     });
-    it('status 404, non-existant article_id', async () => {
+    it('status 404, non-existent article_id', async () => {
       const testPost = {username: "icellusedkars", body: "here is my interesting post"}
       const { body: { msg } } = await request
       .post('/api/articles/9999/comments')
@@ -545,7 +545,7 @@ describe('Comments / by ID', () => {
             expect.objectContaining({ body: 'newtext' })
         )
     });  
-    it('rejects with 404 given non-existant ID', async () => {
+    it('rejects with 404 given non-existent ID', async () => {
       const { body: { msg } } = await request
       .patch('/api/comments/200').expect(404)
       .send({ inc_votes: 1 })
@@ -576,7 +576,7 @@ describe('Comments / by ID', () => {
         .delete('/api/comments/3')
         .expect(204)
     });  
-    it('non-existant comment_id, 404', async () => {
+    it('non-existent comment_id, 404', async () => {
       const { body: { msg } } = await request
         .delete('/api/comments/399')
         .expect(404)
@@ -623,7 +623,7 @@ describe('Users + Users / by ID ', () => {
           })
       );
     });
-    it('non-existant username, 404', async () => {
+    it('non-existent username, 404', async () => {
       const { body: { msg } } = await request
         .get('/api/users/not_user_here')
         .expect(404)
@@ -655,7 +655,7 @@ describe('Users + Users / by ID ', () => {
             expect.objectContaining({ username: 'http://my.new.avatar' })
         )
     });
-    it('rejects with 404 given non-existant username', async () => {
+    it('rejects with 404 given non-existent username', async () => {
       const { body: { msg } } = await request
       .patch('/api/users/not_a_user').expect(404)
       .send({ 
@@ -689,7 +689,7 @@ describe('Users + Users / by ID ', () => {
   });
 });
 
-describe('Users / signup / login / logout', () => {
+describe('Users / signup / login / logout / authentication', () => {
   describe('POST /api/users/signup', () => {
     it('should add a user and respond with added user', async () => {
       testReq = { 
@@ -755,7 +755,7 @@ describe('Users / signup / login / logout', () => {
         .expect(400)
       expect(loggedIn.body.msg).toBe('Incorrect password')
     });
-    it('should refuse login with an non-existant username', async () => {
+    it('should refuse login with an non-existent username', async () => {
     const testUser = { 
         username: 'logic1000',
         name: 'Susanne Kraft',
@@ -775,6 +775,15 @@ describe('Users / signup / login / logout', () => {
         .send(testLogin)
         .expect(400)
       expect(loggedIn.body.msg).toBe('User not found')
+    });
+  });
+  describe('auth middleware', () => {
+    it('responds with 401 - Unauthorised when JWT not in header', async () => {
+      const { body: { msg }} = await request
+        .get('/api/articles')
+        .set('Authorization', 'not a token')
+        .expect(401)
+      expect(msg).toBe('Unauthorised')
     });
   });
 });

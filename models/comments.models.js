@@ -15,7 +15,7 @@ exports.removeComment = async (comment_id) => {
   }
 
   exports.updateComment = async (comment_id, {inc_votes, body}) => {
-    await checkExists('comments', 'comment_id', comment_id)
+    await checkExists(db, 'comments', 'comment_id', comment_id)
     if (inc_votes === 0) {
       return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
     }

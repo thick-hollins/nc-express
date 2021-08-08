@@ -20,7 +20,7 @@ exports.selectUser = async (username) => {
 }
 
 exports.updateUser = async (currentUsername, {username, name, avatar_url}) => {
-  await checkExists('users', 'username', currentUsername)
+  await checkExists(db, 'users', 'username', currentUsername)
   if (!username && !name && !avatar_url) {
     return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
   }

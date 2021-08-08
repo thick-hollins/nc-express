@@ -29,7 +29,7 @@ exports.selectArticleById = async article_id => {
 }
 
 exports.updateArticle = async (article_id, { inc_votes, body }) => {
-  await checkExists('articles', 'article_id', article_id)
+  await checkExists(db, 'articles', 'article_id', article_id)
   if (inc_votes === 0) {
     return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
   }
@@ -91,10 +91,10 @@ exports.selectArticles = async (queries) => {
         ${f.literal((page - 1) * limit)};
     `)
   if (topic && !articles.rows.length) {
-    await checkExists('topics', 'slug', topic)
+    await checkExists(db, 'topics', 'slug', topic)
   }
   if (author && !articles.rows.length) {
-    await checkExists('users', 'username', author)
+    await checkExists(db, 'users', 'username', author)
   }
   return mapCols(articles.rows, col => parseInt(col), 'comment_count')
 }
@@ -120,7 +120,7 @@ exports.selectComments = async (article_id, { limit = 10, page = 1 }) => {
       (page - 1) * limit 
     ])
     if (!comments.rows.length) {
-      await checkExists('articles', 'article_id', article_id)
+      await checkExists(db, 'articles', 'article_id', article_id)
     }
   return comments.rows
 }
@@ -130,8 +130,8 @@ exports.insertComment = async (article_id, newComment) => {
   if (!username || !body) {
     return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
   }
-  await checkExists('articles', 'article_id', article_id)
-  await checkExists('users', 'username', username)
+  await checkExists(db, 'articles', 'article_id', article_id)
+  await checkExists(db, 'users', 'username', username)
   const comment = await db
     .query(`
     INSERT INTO comments

@@ -8,7 +8,7 @@ const seed = require("../db/seeds/seed.js");
 
 beforeEach(() => seed(testData));
 beforeEach(async () => {
-  const { body: { user } } = await request
+  await request
     .post('/api/users/signup')
     .send({ username: 'test_user', name: 'test', avatar_url: 'test', password: 'pizza' })
     .expect(201)

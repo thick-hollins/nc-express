@@ -1,0 +1,18 @@
+clean up tests for login signup
+
+add salts to test data?
+
+remove hash from signup response (and salt?)
+
+finish CI/CD
+
+assign user role / normal /admin
+
+- [ ] Get: Search for an article by title
+
+- [ ] Get: Add functionality to get articles created in last 10 minutes
+
+- [ ] Get: Get all articles that have been liked by a user. This will require an additional junction table.
+
+- [ ] Research and implement online image storage or random generation of images for topics
+​

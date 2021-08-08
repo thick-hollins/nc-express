@@ -671,7 +671,7 @@ describe('Users + Users / by ID ', () => {
       .send({})
         expect(msg).toBe('Bad request - missing field(s)')
     });
-    it('cascade updates author FKs  on comments and articles', async () => {
+    it('cascade updates author FKs on comments and articles', async () => {
       await request
         .patch('/api/users/butter_bridge').expect(200)
         .send({ username: 'my_new_username' })

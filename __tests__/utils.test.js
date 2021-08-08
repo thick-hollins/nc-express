@@ -256,13 +256,12 @@ describe('mapCols', () => {
     expect(dogs[0]).toEqual({ name: "Otis" });
   });
 });
-xdescribe('checkExists', () => {
-  it('should respond with 404 given non existant value in the database in a valid table and col', async () => {
-    const format = require('pg-format')
-    const db = {}
-    expect.assertions(1);
-    db.query = jest.fn()
-    const output = await checkExists('topics', 'slug', 'mitch')
-    console.log(db.query.mock)
+describe('checkExists', () => {
+  it('should invoke db.query with a query using the arguments passed', async () => {
+    const db = require('../db/connection')
+    const mockQuery = jest.fn(db.query)
+    db.query = mockQuery
+    await checkExists(db, 'topics', 'slug', 'mitch')
+    expect(mockQuery).toHaveBeenCalledWith("SELECT * FROM topics WHERE slug = 'mitch';")
   });
 });

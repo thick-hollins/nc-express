@@ -182,13 +182,13 @@
     }
   },
   "PATCH /api/users/:user_id": {
-    "description": "serves a single user object",
+    "description": "updates a user and serves it back",
     "queries": [],
     "exampleRequest": { 
         "username": "S0uthc0der", 
         "avatar_url": "http://north.coder/img_new.jpg",
         "name": "Fred Astaire"
-    }
+    },
     "exampleResponse": {
       "user": { 
         "username": "S0uthc0der", 

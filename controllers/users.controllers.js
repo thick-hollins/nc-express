@@ -35,7 +35,7 @@ exports.patchUser = (req, res, next) => {
 exports.postLogin = (req, res, next) => {
   login(req.body)
     .then((loggedIn) => {
-      res.status(201).send(loggedIn)
+      res.status(200).send(loggedIn)
     })
     .catch(next)
 }

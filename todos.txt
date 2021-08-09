@@ -8,7 +8,7 @@ finish CI/CD
 
 assign user role / normal /admin
 
-update endpoints.json
+update endpoints.json 
 
 - [ ] Get: Search for an article by title
 

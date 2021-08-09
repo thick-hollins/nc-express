@@ -45,7 +45,7 @@ exports.insertUser = async ({ username, name, avatar_url, password }) => {
         (username, name, avatar_url, hash, salt)
       VALUES
         ($1, $2, $3, $4, $5)
-      RETURNING *;
+      RETURNING username, name, avatar_url;
     `, [username, name, avatar_url, hash, salt])
   return user.rows[0]
 }
@@ -57,7 +57,7 @@ exports.login = async ({ username, password }) => {
     return Promise.reject({status: 400, msg: 'User not found'})
   }
 
-  const { hash, salt } = user.rows[0]
+  const { salt, hash } = user.rows[0]
   if (!validPassword(password, hash, salt)) {
     return Promise.reject({status: 400, msg: 'Incorrect password'})
   } else {

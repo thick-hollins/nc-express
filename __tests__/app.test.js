@@ -707,7 +707,6 @@ describe('Users / signup / login / logout / authentication', () => {
         username: 'sonic_hedgehog',
         avatar_url: 'http://img.url',
         name: 'Joe Warburton',
-        hash: expect.any(String)
         })
       )
     });
@@ -726,14 +725,15 @@ describe('Users / signup / login / logout / authentication', () => {
       const testLogin = {
         username: 'logic1000',
         password: 'octopus',
-        salt: newUser.salt
       }
+      console.log(newUser)
       const loggedIn = await request
         .post('/api/users/login')
         .send(testLogin)
         .expect(200)
-      expect(loggedIn.body)
-    });
+      expect(loggedIn.body).toEqual(
+        expect.objectContaining({ accessToken: expect.any(String) }))
+    })
     it('should refuse login with an incorrect password', async () => {
     const testUser = { 
         username: 'logic1000',
@@ -741,13 +741,12 @@ describe('Users / signup / login / logout / authentication', () => {
         avatar_url: 'http://img.url',
         password: 'octopus'
       }
-      const { body: { user: newUser }} = await request
+      await request
         .post('/api/users/signup')
         .send(testUser)
       const testLogin = {
         username: 'logic1000',
         password: 'squid',
-        salt: newUser.salt
       }
       const loggedIn = await request
         .post('/api/users/login')

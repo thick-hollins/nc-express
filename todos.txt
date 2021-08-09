@@ -1,10 +1,4 @@
-clean up tests for login signup
-
-add salts to test data?
-
-remove hash from signup response (and salt?)
-
-finish CI/CD
+finish CI/CD - jwt-secret
 
 assign user role / normal /admin
 

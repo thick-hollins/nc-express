@@ -8,6 +8,8 @@ finish CI/CD
 
 assign user role / normal /admin
 
+update endpoints.json
+
 - [ ] Get: Search for an article by title
 
 - [ ] Get: Add functionality to get articles created in last 10 minutes

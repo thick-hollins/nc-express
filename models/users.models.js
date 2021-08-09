@@ -64,5 +64,4 @@ exports.login = async ({ username, password }) => {
     const accessToken = jwt.sign({ username }, process.env.JWT_SECRET)
     return { accessToken }
   }
-
 }

@@ -5,6 +5,7 @@ const supertest = require('supertest')
 var request = defaults(supertest(app));
 const testData = require("../db/data/test-data/index.js");
 const seed = require("../db/seeds/seed.js");
+const { forEach } = require("../db/data/test-data/articles.js");
 
 beforeEach(() => seed(testData));
 beforeEach(async () => {
@@ -186,8 +187,33 @@ describe('Articles', () => {
         .expect(200)
         expect(articles[0].article_id).toBe(5)
     })
+    it('finds an article matching entire title', async() => {
+      const { body: { articles } } = await request
+      .get('/api/articles?title=UNCOVERED: catspiracy to bring down democracy')
+      .expect(200)
+      expect(articles[0]).toEqual(
+        expect.objectContaining({
+        title: 'UNCOVERED: catspiracy to bring down democracy'
+      })
+    );
+    });
+    it('finds an article case insensitively', async() => {
+      const { body: { articles } } = await request
+      .get('/api/articles?title=UNCOVERED: CATspiracy to bring down democracy')
+      .expect(200)
+      expect(articles[0].title).toBe('UNCOVERED: catspiracy to bring down democracy')
+    });
+    it('finds multiple articles by substring', async () => {
+      const { body: { articles } } = await request
+      .get('/api/articles?title=cat')
+      .expect(200)
+      expect(articles.length).toBeGreaterThan(0)
+      articles.forEach(article => {
+        expect(article.title).toContain('cat')
+      })
+    });
   });
-  
+
   describe('POST /api/articles', () => {
     it('should add an article and respond with added article', async () => {
       testReq = {
@@ -726,7 +752,6 @@ describe('Users / signup / login / logout / authentication', () => {
         username: 'logic1000',
         password: 'octopus',
       }
-      console.log(newUser)
       const loggedIn = await request
         .post('/api/users/login')
         .send(testLogin)

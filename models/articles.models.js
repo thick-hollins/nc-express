@@ -54,7 +54,8 @@ exports.selectArticles = async (queries) => {
     limit = 10,
     page = 1,
     topic,
-    author
+    author,
+    title
   } = queries
   if (!['article_id', 'author', 'title', 'topic', 'created_at', 'votes', 'comment_count']
         .includes(sort_by) || 
@@ -77,10 +78,12 @@ exports.selectArticles = async (queries) => {
     FROM articles
     LEFT JOIN comments
     ON articles.article_id = comments.article_id
-    ${topic || author ? `WHERE ` : ''}
+    ${topic || author || title ? `WHERE ` : ''}
       ${topic? `topic = ${f.literal(topic)}`: '' }
       ${topic && author ? `AND ` : ''}
       ${author? `articles.author = ${f.literal(author)}` : ''}
+      ${(topic || author) && title ? `AND ` : ''}
+      ${title? `title ~* ${f.literal(title)}` : ''}
       GROUP BY 
         articles.article_id
       ORDER BY

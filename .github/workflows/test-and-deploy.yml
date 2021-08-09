@@ -42,4 +42,3 @@ jobs:
           heroku_api_key: $
           heroku_app_name: $
           heroku_email: $
-          jwt_secret: $

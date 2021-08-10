@@ -5,7 +5,7 @@ assign user role / normal /admin
 update endpoints.json + search
 
 
-- [ ] Get: Add functionality to get articles created in last 10 minutes
+- [ ] Get: Add functionality to get comments created in last 10 minutes
 
 - [ ] Get: Get all articles that have been liked by a user. This will require an additional junction table.
 

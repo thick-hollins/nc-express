@@ -275,6 +275,41 @@ describe('Articles', () => {
       expect(msg).toBe('Bad request');
     });
   });
+
+  describe('GET /api/articles/new', () => {
+    it('responds with articles created in last 10 minutes', async () => {
+      testReq = {
+        author: 'butter_bridge', 
+        title: 'new article',
+        body: 'some content',
+        topic: 'cats'
+      }
+      testReq2 = {
+        author: 'butter_bridge', 
+        title: 'another new article',
+        body: 'some content',
+        topic: 'cats'
+      }
+      await request
+        .post('/api/articles/')
+        .expect(201)
+        .send(testReq)
+      await request
+        .post('/api/articles/')
+        .expect(201)
+        .send(testReq2)
+      const { body: { articles } } = await request
+        .get('/api/articles/new')
+        .expect(200)
+      expect(articles).toHaveLength(2)
+      const currentTime = new Date
+      articles.forEach(article => {
+        const createdTime = new Date(article.created_at)
+        expect(currentTime - createdTime).toBeGreaterThanOrEqual(0)
+        expect(currentTime - createdTime).toBeLessThanOrEqual(600000)
+      })
+    });
+  });
 });
 
 describe('Articles / by ID', () => {
@@ -826,7 +861,7 @@ describe('Misc', () => {
   });
   describe('GET /not-a-route', () => {
     it('status 404, relevant message', async () => {
-      const { body: {msg} } = await request
+      const { body: { msg } } = await request
         .get("/not_a_route")
         .expect(404)
         expect(msg).toBe('Route not found')

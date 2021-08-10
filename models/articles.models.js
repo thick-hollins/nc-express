@@ -173,3 +173,29 @@ exports.removeArticle = async (article_id) => {
       return Promise.reject({status: 404, msg: 'Resource not found'})
     }
 }
+
+exports.selectNewArticles = async () => {
+  const articles = await db
+  .query(`
+  SELECT
+    articles.author,
+    title,
+    articles.article_id,
+    articles.body,
+    topic,
+    articles.created_at,
+    articles.votes,
+    COUNT(comments.article_id) AS
+      comment_count
+  FROM articles
+  LEFT JOIN comments
+  ON articles.article_id = comments.article_id
+  WHERE 
+    articles.created_at > NOW() - interval '10 minutes'
+  GROUP BY 
+    articles.article_id
+  ORDER BY
+    articles.created_at DESC;
+  `)
+  return articles.rows
+}

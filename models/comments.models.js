@@ -32,3 +32,16 @@ exports.removeComment = async (comment_id) => {
         ;`)
     return comment.rows[0]
   }
+
+  exports.selectNewComments = async () => {
+    const articles = await db
+    .query(`
+    SELECT *
+    FROM comments
+    WHERE 
+      created_at > NOW() - interval '10 minutes'
+    ORDER BY
+      created_at DESC;
+    `)
+    return articles.rows
+  }

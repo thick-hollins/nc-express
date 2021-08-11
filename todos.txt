@@ -2,7 +2,9 @@ finish CI/CD - jwt-secret
 
 assign user role / normal /admin
 
-update endpoints.json + search
+update endpoints.json + search, patch users, article comment
+
+checkExists mock
 
 
 - [ ] Get: Add functionality to get comments created in last 10 minutes

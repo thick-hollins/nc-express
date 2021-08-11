@@ -10,6 +10,8 @@ const {
 const seed = async data => {
   const { articleData, commentData, topicData, userData } = data
 
+  await db.query(`DROP TABLE IF EXISTS comment_likes;`)
+  await db.query(`DROP TABLE IF EXISTS article_likes;`)
   await db.query(`DROP TABLE IF EXISTS comments;`)
   await db.query(`DROP TABLE IF EXISTS articles;`)
   await db.query(`DROP TABLE IF EXISTS users;`)
@@ -49,6 +51,22 @@ const seed = async data => {
       votes INT DEFAULT 0 NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
       body TEXT NOT NULL
+    );`)
+
+    await db.query(`
+    CREATE TABLE comment_likes (
+      comment_like_id SERIAL PRIMARY KEY,
+      username VARCHAR(100) REFERENCES users(username) ON DELETE CASCADE NOT NULL,
+      comment_id INT REFERENCES comments(comment_id) ON DELETE CASCADE NOT NULL,
+      time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+    );`)
+
+    await db.query(`
+    CREATE TABLE article_likes (
+      article_like_id SERIAL PRIMARY KEY,
+      username VARCHAR(100) REFERENCES users(username) ON DELETE CASCADE NOT NULL,
+      article_id INT REFERENCES articles(article_id) ON DELETE CASCADE NOT NULL,
+      time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     );`)
 
   await db.query(`

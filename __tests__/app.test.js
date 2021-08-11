@@ -580,7 +580,7 @@ describe('Articles / by ID / comments', () => {
   });
 });
 
-describe('Comments / by ID', () => {
+describe('Comments', () => {
   describe('PATCH /api/comments/:comment_id', () => {
     it('increments a comments votes by given amount, responds with comment', async () => {
       const { body: { comment } } = await request
@@ -649,6 +649,36 @@ describe('Comments / by ID', () => {
         .expect(400)
       expect(msg).toBe('Bad request - invalid data type')
     });  
+  });
+  describe('GET /api/comments/new', () => {
+    it('responds with comments created in last 10 minutes', async () => {
+      testReq = {
+        username: 'butter_bridge', 
+        body: 'new comment',
+      }
+      testReq2 = {
+        username: 'butter_bridge', 
+        body: 'another new comment',
+      }
+      await request
+        .post('/api/articles/1/comments')
+        .expect(201)
+        .send(testReq)
+      await request
+        .post('/api/articles/1/comments')
+        .expect(201)
+        .send(testReq2)
+      const { body: { comments } } = await request
+        .get('/api/comments/new')
+        .expect(200)
+      expect(comments).toHaveLength(2)
+      const currentTime = new Date
+      comments.forEach(comment => {
+        const createdTime = new Date(comment.created_at)
+        expect(currentTime - createdTime).toBeGreaterThanOrEqual(0)
+        expect(currentTime - createdTime).toBeLessThanOrEqual(600000)
+      })
+    });
   });
 });
 

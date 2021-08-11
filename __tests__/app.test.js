@@ -716,7 +716,6 @@ describe('Users + Users / by ID ', () => {
       });
     });
   });
-  
   describe('GET /api/users/:username', () => {
     it('responds with relevant user object', async () => {
       const { body: { user } } = await request
@@ -793,6 +792,24 @@ describe('Users + Users / by ID ', () => {
       expect(res2.body.comments[0]).toEqual(
         expect.objectContaining({ author: 'my_new_username' })
       )
+    });
+  });
+  describe('GET /api/users/:username/likes', () => {
+    it('should respond with an array of all articles upvoted', async () => {
+      await request
+        .patch('/api/articles/2')
+        .expect(200)
+        .send({ inc_votes: 1 })
+      await request
+        .patch('/api/articles/4')
+        .expect(200)
+        .send({ inc_votes: 1 })
+      const { body: { likes } } = await request
+        .get('/api/users/test_user/likes')
+        .expect(200)
+      expect(likes).toHaveLength(2)
+      expect(likes[0].article_id).toBe(2)
+      expect(likes[1].article_id).toBe(4)
     });
   });
 });

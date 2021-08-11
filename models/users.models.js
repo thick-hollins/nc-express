@@ -5,18 +5,47 @@ const { checkExists } = require('../db/utils/queries')
 const {generateSalt, hashPassword, validPassword} = require('../db/utils/auth')
 
 exports.selectUsers = async () => {
-    const users = await db
-      .query(`SELECT * FROM users;`)
-    return users.rows;
+  const users = await db
+    .query(`SELECT * FROM users;`)
+  return users.rows;
 }
 
 exports.selectUser = async (username) => {
-    const user = await db
-      .query(`SELECT * FROM users WHERE username = $1;`, [username])
-      if (!user.rows.length) {
-        return Promise.reject({status: 404, msg: 'Resource not found'})
-    }
-    return user.rows[0];
+  const user = await db
+    .query(`SELECT * FROM users WHERE username = $1;`, [username])
+    if (!user.rows.length) {
+      return Promise.reject({status: 404, msg: 'Resource not found'})
+  }
+  return user.rows[0];
+}
+
+exports.selectLikes = async (username) => {
+  const likes = await db
+    .query(`
+      SELECT 
+        articles.article_id,
+        articles.title,
+        articles.votes,
+        articles.topic,
+        articles.author,
+        articles.created_at,
+        articles.body 
+      FROM 
+        users
+      JOIN
+        article_votes
+      ON
+        users.username = article_votes.username
+      JOIN
+        articles
+      ON
+        articles.article_id = article_votes.article_id
+      WHERE
+        users.username = $1
+        AND
+          article_votes.up = true
+      ;`, [username])
+  return likes.rows;
 }
 
 exports.updateUser = async (currentUsername, {username, name, avatar_url}) => {

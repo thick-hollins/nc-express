@@ -1,5 +1,11 @@
 const express = require("express")
-const { getUsers, getUser, postUser, postLogin, patchUser } = require("../controllers/users.controllers")
+const { 
+    getUsers, 
+    getUser, 
+    postUser, 
+    postLogin, 
+    patchUser,
+    getLikes } = require("../controllers/users.controllers")
 const usersRouter = express.Router()
 
 usersRouter.route("/")
@@ -8,6 +14,9 @@ usersRouter.route("/")
 usersRouter.route('/:username')
     .get(getUser)
     .patch(patchUser)
+
+usersRouter.route('/:username/likes')
+    .get(getLikes)
 
 usersRouter.route('/signup')
     .post(postUser)

@@ -44,6 +44,9 @@ exports.insertUser = async ({ username, name, avatar_url, password }) => {
     if (unique.rows.length) {
       return Promise.reject({status: 400, msg: 'Username is taken'})
     }
+  if (!username || !name || !avatar_url || !password) {
+    return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
+  }
   const salt = generateSalt()
   const hash = hashPassword(password, salt)
   const user = await db
@@ -58,6 +61,9 @@ exports.insertUser = async ({ username, name, avatar_url, password }) => {
 }
 
 exports.login = async ({ username, password }) => {
+  if (!username || !password) {
+    return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
+  }
   const user = await db
     .query(`SELECT * FROM users WHERE username = $1;`, [username])
   if (!user.rows.length) {

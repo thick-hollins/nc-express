@@ -5,7 +5,6 @@ const supertest = require('supertest')
 var request = defaults(supertest(app));
 const testData = require("../db/data/test-data/index.js");
 const seed = require("../db/seeds/seed.js");
-const { forEach } = require("../db/data/test-data/articles.js");
 
 beforeEach(() => seed(testData));
 beforeEach(async () => {
@@ -362,7 +361,7 @@ describe('Articles / by ID', () => {
   })
   
   describe('PATCH /api/articles/:article_id', () => {
-    it('increments an articles votes by given amount, responds with article', async () => {
+    it('increments an articles vote, responds with article', async () => {
       const { body: { article } } = await request
       .patch('/api/articles/2')
       .expect(200)
@@ -371,7 +370,7 @@ describe('Articles / by ID', () => {
             expect.objectContaining({ votes: 1 })
         )
     });  
-    it('decrements an articles votes by given amount, responds with article', async () => {
+    it('decrements an articles vote, responds with article', async () => {
       const { body: { article } } = await request
       .patch('/api/articles/1')
       .expect(200)
@@ -410,12 +409,19 @@ describe('Articles / by ID', () => {
       .send({ inc_votes: 0})
         expect(msg).toBe('Bad request - invalid vote')
     });  
+    it('rejects with 400 given inc_vote not 1 or -1', async () => {
+      const { body: { msg } } = await request
+      .patch('/api/articles/2')
+      .expect(400)
+      .send({ inc_votes: 9})
+        expect(msg).toBe('Bad request - invalid vote')
+    });  
     it('rejects with 400 given invalid data type for inc_votes', async () => {
       const { body: { msg } } = await request
       .patch('/api/articles/2')
       .expect(400)
       .send({ inc_votes: 'Leeds' })
-        expect(msg).toBe('Bad request - invalid data type')
+        expect(msg).toBe('Bad request - invalid vote')
     }); 
   });
   
@@ -818,11 +824,23 @@ describe('Users / signup / login / logout / authentication', () => {
         avatar_url: 'http://img2.url',
         password: 'calzone'
       }
-      const { body: { msg } } = await request
+      const { body: { msg } } = await request 
+      .post('/api/users/signup')
+      .expect(400)
+      .send(testReq2)
+    expect(msg).toBe('Username is taken')
+    });
+    it('missing fields on request, 400', async () => {
+      const testReq = {
+        username: 'sonic_hedgehog',
+        avatar_url: 'http://img2.url',
+        password: 'calzone'
+      }
+      const { body: { msg } } = await request 
       .post('/api/users/signup')
       .expect(400)
       .send(testReq)
-    expect(msg).toBe('Username is taken')
+    expect(msg).toBe('Bad request - missing field(s)')
     });
   });
   describe('POST /api/users/login', () => {
@@ -887,6 +905,16 @@ describe('Users / signup / login / logout / authentication', () => {
         .send(testLogin)
         .expect(400)
       expect(loggedIn.body.msg).toBe('User not found')
+    });
+    it('missing fields on request, 400', async () => {
+      const testReq = {
+        password: 'calzone'
+      }
+      const { body: { msg } } = await request 
+      .post('/api/users/login')
+      .expect(400)
+      .send(testReq)
+    expect(msg).toBe('Bad request - missing field(s)')
     });
   });
   describe('auth middleware', () => {

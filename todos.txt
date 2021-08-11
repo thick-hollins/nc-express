@@ -1,15 +1,14 @@
 finish CI/CD - jwt-secret
 
-assign user role / normal /admin
-
-update endpoints.json + search, patch users, article comment
+create admin only and author only actions
 
 checkExists mock
 
-
-- [ ] Get: Add functionality to get comments created in last 10 minutes
+final routes: change password / logout /elevateToAdmin / deleteUser?
 
 - [ ] Get: Get all articles that have been liked by a user. This will require an additional junction table.
 
-- [ ] Research and implement online image storage or random generation of images for topics
-​
+- [ ] Research and implement online image storage or random generation of images for topics /
+Emoji generation?
+
+- make password and salt NOT NULL, change test and dev data?

@@ -8,6 +8,7 @@ const {
   removeArticle,
   selectNewArticles
   } = require("../models/articles.models");
+  const jwt = require('jsonwebtoken')
 
 exports.getArticleById = (req, res, next) => {
   selectArticleById(req.params.article_id)
@@ -18,7 +19,8 @@ exports.getArticleById = (req, res, next) => {
 }
 
 exports.patchArticle = (req, res, next) => {
-  updateArticle(req.params.article_id, req.body)
+  const user = jwt.decode(req.headers.authorization.split(' ')[1])
+  updateArticle(req.params.article_id, req.body, user)
     .then((article) => {
       res.status(200).send({ article });
     })

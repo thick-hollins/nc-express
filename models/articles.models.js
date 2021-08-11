@@ -2,7 +2,6 @@ const db = require("../db/connection.js")
 const { checkExists } = require('../db/utils/queries')
 const { mapCols } = require('../db/utils/data-manipulation')
 const f = require('pg-format')
-const jwt = require('jsonwebtoken')
 
 exports.selectArticleById = async article_id => {
   const article = await db
@@ -29,10 +28,19 @@ exports.selectArticleById = async article_id => {
   return mapCols(article.rows, col => parseInt(col), 'comment_count')[0]
 }
 
-exports.updateArticle = async (article_id, { inc_votes, body }) => {
+exports.updateArticle = async (article_id, { inc_votes, body }, user) => {
   await checkExists(db, 'articles', 'article_id', article_id)
-  if (inc_votes === 0) {
-    return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
+  if (inc_votes !== undefined) {
+    if (inc_votes !== 1 && inc_votes !== -1) {
+      return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
+    }
+    const up = inc_votes === 1
+    await db.query(`
+      INSERT INTO article_votes
+        (article_id, username, up)
+      VALUES
+        ($1, $2, $3)
+    `, [article_id, user.username, up])
   }
   if (!inc_votes && !body) {
     return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})

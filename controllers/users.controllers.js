@@ -1,4 +1,5 @@
 const { selectUsers, selectUser, selectLikes, insertUser, updateUser, login } = require("../models/users.models");
+const jwt = require('jsonwebtoken')
 
 exports.getUsers = (req, res, next) => {
   selectUsers()
@@ -33,7 +34,8 @@ exports.getLikes = (req, res, next) => {
 }
 
 exports.patchUser = (req, res, next) => {
-  updateUser(req.params.username, req.body)
+  const user = jwt.decode(req.headers.authorization.split(' ')[1])
+  updateUser(req.params.username, req.body, user)
     .then(user => {
       res.status(200).send({ user })
     })

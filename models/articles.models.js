@@ -137,13 +137,13 @@ exports.selectComments = async (article_id, { limit = 10, page = 1 }) => {
   return comments.rows
 }
 
-exports.insertComment = async (article_id, newComment) => {
-  const {username, body} = newComment
-  if (!username || !body) {
+exports.insertComment = async (article_id, newComment, user) => {
+  const { body } = newComment
+  if (!body) {
     return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
   }
   await checkExists(db, 'articles', 'article_id', article_id)
-  await checkExists(db, 'users', 'username', username)
+  await checkExists(db, 'users', 'username', user.username)
   const comment = await db
     .query(`
     INSERT INTO comments
@@ -151,13 +151,13 @@ exports.insertComment = async (article_id, newComment) => {
     VALUES
       ($1, $2, $3)
     RETURNING *;
-    `, [article_id, username, body])
+    `, [article_id, user.username, body])
 return comment.rows[0]
 }
 
-exports.insertArticle = async (newComment) => {
-  const {author, title, body, topic} = newComment
-  if (!author || !body || !title || !topic) {
+exports.insertArticle = async (newComment, user) => {
+  const {title, body, topic} = newComment
+  if (!body || !title || !topic) {
     return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
   }
   const article = await db
@@ -167,7 +167,7 @@ exports.insertArticle = async (newComment) => {
     VALUES
       ($1, $2, $3, $4)
     RETURNING *;
-    `, [author, title, body, topic])
+    `, [user.username, title, body, topic])
 return article.rows[0]
 }
 

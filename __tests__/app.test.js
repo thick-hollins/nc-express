@@ -5,6 +5,7 @@ const supertest = require('supertest')
 var request = defaults(supertest(app));
 const testData = require("../db/data/test-data/index.js");
 const seed = require("../db/seeds/seed.js");
+const jwt = require('jsonwebtoken')
 
 beforeEach(() => seed(testData));
 beforeEach(async () => {
@@ -216,7 +217,6 @@ describe('Articles', () => {
   describe('POST /api/articles', () => {
     it('should add an article and respond with added article', async () => {
       testReq = {
-        author: 'butter_bridge', 
         title: 'buttermilk',
         body: 'some content',
         topic: 'cats'
@@ -237,7 +237,6 @@ describe('Articles', () => {
     });
     it('responds with 400 if a field is missing on request', async () => {
       testReq = {
-        author: 'butter_bridge', 
         title: 'buttermilk',
         topic: 'cats'
       }
@@ -248,24 +247,10 @@ describe('Articles', () => {
       expect(msg).toBe('Bad request - missing field(s)');
     });
     it('responds with 400 if a non-existent topic', async () => {
-      testReq = {
-        author: 'butter_bridge', 
+      testReq = { 
         title: 'buttermilk',
         body: 'some content',
         topic: 'table tennis'
-      }
-      const { body: { msg } } = await request
-        .post('/api/articles')
-        .expect(400)
-        .send(testReq)
-      expect(msg).toBe('Bad request');
-    });
-    it('responds with 400 if a non-existent author', async () => {
-      testReq = {
-        author: 'turgenev', 
-        title: 'buttermilk',
-        body: 'some content',
-        topic: 'cats'
       }
       const { body: { msg } } = await request
         .post('/api/articles')
@@ -528,7 +513,7 @@ describe('Articles / by ID / comments', () => {
   
   describe('POST /api/articles/:article_id/comments', () => {
     it('take a request with username and body and respond with the created comment', async () => {
-      const testPost = {username: "icellusedkars", body: "here is my interesting post"}
+      const testPost = { body: "here is my interesting post" }
       const { body: { comment } } = await request
         .post('/api/articles/3/comments')
         .expect(201)
@@ -536,7 +521,7 @@ describe('Articles / by ID / comments', () => {
       expect(comment).toEqual(
         expect.objectContaining({
         comment_id: expect.any(Number),
-        author: 'icellusedkars',
+        author: 'test_user',
         article_id: 3,
         created_at: expect.any(String),
         body: 'here is my interesting post'
@@ -550,14 +535,6 @@ describe('Articles / by ID / comments', () => {
         .expect(400)
         .send(testPost)
       expect(msg).toBe('Bad request - missing field(s)');
-    });
-    it('responds with 404 if a non-existent username', async () => {
-      const testPost = {username: "not_user", body: "here is my interesting post"}
-      const { body: { msg } } = await request
-        .post('/api/articles/4/comments')
-        .expect(404)
-        .send(testPost)
-      expect(msg).toBe('Resource not found');
     });
     it('status 400, malformed article_id param', async () => {
       const testPost = {username: "icellusedkars", body: "here is my interesting post"}
@@ -577,7 +554,6 @@ describe('Articles / by ID / comments', () => {
     });
     it('ignores unnecessary properties on request', async() => {
       const testPost = {
-        username: "icellusedkars", 
         body: "here is my interesting post",
         extra_col: 'extra value'  
       }
@@ -588,7 +564,7 @@ describe('Articles / by ID / comments', () => {
       expect(comment).toEqual(
         expect.objectContaining({
         comment_id: expect.any(Number),
-        author: 'icellusedkars',
+        author: 'test_user',
         article_id: 3,
         created_at: expect.any(String),
         body: 'here is my interesting post'
@@ -922,9 +898,10 @@ describe('Users / signup / login / logout / authentication', () => {
         avatar_url: 'http://img.url',
         password: 'octopus'
       }
-      const { body: { user: newUser }} = await request
+    await request
         .post('/api/users/signup')
         .send(testUser)
+        .expect(201)
       const testLogin = {
         username: 'logic1000',
         password: 'octopus',
@@ -933,8 +910,8 @@ describe('Users / signup / login / logout / authentication', () => {
         .post('/api/users/login')
         .send(testLogin)
         .expect(200)
-      expect(loggedIn.body).toEqual(
-        expect.objectContaining({ accessToken: expect.any(String) }))
+      expect(jwt.decode(loggedIn.body.accessToken).username)
+        .toBe(testLogin.username)
     })
     it('should refuse login with an incorrect password', async () => {
     const testUser = { 

@@ -53,7 +53,8 @@ exports.postComment = (req, res, next) => {
 }
 
 exports.postArticle = (req, res, next) => {
-  insertArticle(req.body)
+  const user = jwt.decode(req.headers.authorization.split(' ')[1])
+  insertArticle(req.body, user)
     .then((article) => {
       res.status(201).send({ article })
     })

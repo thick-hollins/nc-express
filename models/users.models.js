@@ -20,6 +20,7 @@ exports.selectUser = async (username) => {
 }
 
 exports.selectLikes = async (username) => {
+  await checkExists(db, 'users', 'username', username)
   const likes = await db
     .query(`
       SELECT 

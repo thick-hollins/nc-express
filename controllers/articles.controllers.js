@@ -44,7 +44,8 @@ exports.getComments = (req, res, next) => {
 }
 
 exports.postComment = (req, res, next) => {
-  insertComment(req.params.article_id, req.body)
+  const user = jwt.decode(req.headers.authorization.split(' ')[1])
+  insertComment(req.params.article_id, req.body, user)
     .then((comment) => {
       res.status(201).send({ comment })
     })

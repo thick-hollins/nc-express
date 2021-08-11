@@ -4,15 +4,19 @@ create admin only and author only actions
 
 checkExists mock
 
-final routes: change password / logout /elevateToAdmin / deleteUser?
+final routes: change password /elevateToAdmin?
 
-- [ ] Get: Get all articles that have been liked by a user. This will require an additional junction table.
+- make password and salt NOT NULL, change test and dev data?
+
+LATER:
 
 - [ ] Research and implement online image storage or random generation of images for topics /
 Emoji generation?
 
-- make password and salt NOT NULL, change test and dev data?
-
 -custom error for multiple likes
 
--error tests on getLikes
+-undo votes
+
+logout
+
+- token expiry / refresh

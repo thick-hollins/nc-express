@@ -313,7 +313,7 @@ describe('Articles', () => {
 
 describe('Articles / by ID', () => {
   describe('GET api/articles/:article_id', () => {
-    it('status 200 - returns an object with the relevant article', async () => {
+    it.only('status 200 - returns an object with the relevant article', async () => {
       const { body: { article } } = await request
         .get('/api/articles/1')
         .expect(200)

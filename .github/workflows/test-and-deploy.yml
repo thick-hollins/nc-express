@@ -27,9 +27,7 @@ jobs:
         run: npm ci
 
       - name: Run tests
-        run: PGDATABASE=my_db PGUSER=test_user PGPASSWORD=test_password npm t
-        with: 
-          JWT_SECRET: $
+        run: PGDATABASE=my_db PGUSER=test_user PGPASSWORD=test_password JWT_SECRET=${{ secrets.JWT_SECRET }} npm t
 
   deploy:
     runs-on: ubuntu-latest

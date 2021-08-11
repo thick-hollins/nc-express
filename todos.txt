@@ -1,12 +1,8 @@
-finish CI/CD - jwt-secret
-
 create admin only and author only actions
 
 checkExists mock
 
-final routes: change password /elevateToAdmin?
-
-- make password and salt NOT NULL, change test and dev data?
+elevateToAdmin
 
 LATER:
 
@@ -20,3 +16,7 @@ Emoji generation?
 logout
 
 - token expiry / refresh
+
+- change password
+
+- make password and salt NOT NULL, change test and dev data?

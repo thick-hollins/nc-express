@@ -62,7 +62,8 @@ exports.postArticle = (req, res, next) => {
 }
 
 exports.deleteArticle = (req, res, next) => {
-  removeArticle(req.params.article_id)
+  const user = jwt.decode(req.headers.authorization.split(' ')[1])
+  removeArticle(req.params.article_id, user)
     .then(() => {
       res.status(204).send()
     })

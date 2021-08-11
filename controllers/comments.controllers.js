@@ -1,7 +1,8 @@
 const { removeComment, updateComment, selectNewComments } = require("../models/comments.models");
 
 exports.deleteComment = (req, res, next) => {
-  removeComment(req.params.comment_id)
+  const user = jwt.decode(req.headers.authorization.split(' ')[1])
+  removeComment(req.params.comment_id, user)
     .then(() => {
       res.status(204).send()
     })
@@ -9,7 +10,8 @@ exports.deleteComment = (req, res, next) => {
 }
 
 exports.patchComment = (req, res, next) => {
-  updateComment(req.params.comment_id, req.body)
+  const user = jwt.decode(req.headers.authorization.split(' ')[1])
+  updateComment(req.params.comment_id, req.body, user)
     .then(comment => {
       res.status(200).send({ comment })
     })

@@ -171,7 +171,7 @@ exports.insertArticle = async (newComment, user) => {
 return article.rows[0]
 }
 
-exports.removeArticle = async (article_id) => {
+exports.removeArticle = async (article_id, user) => {
   const res = await db
     .query(`
       DELETE FROM articles

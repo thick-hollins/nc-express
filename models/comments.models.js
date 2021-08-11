@@ -2,7 +2,7 @@ const db = require("../db/connection")
 const { checkExists } = require('../db/utils/queries')
 const f = require('pg-format')
 
-exports.removeComment = async (comment_id) => {
+exports.removeComment = async (comment_id, user) => {
     const res = await db
       .query(`
         DELETE FROM comments
@@ -14,7 +14,7 @@ exports.removeComment = async (comment_id) => {
       }
   }
 
-  exports.updateComment = async (comment_id, {inc_votes, body}) => {
+  exports.updateComment = async (comment_id, {inc_votes, body}, user) => {
     await checkExists(db, 'comments', 'comment_id', comment_id)
     if (inc_votes === 0) {
       return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})

@@ -12,3 +12,5 @@ final routes: change password / logout /elevateToAdmin / deleteUser?
 Emoji generation?
 
 - make password and salt NOT NULL, change test and dev data?
+
+-custom error for multiple likes

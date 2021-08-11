@@ -423,6 +423,17 @@ describe('Articles / by ID', () => {
       .send({ inc_votes: 'Leeds' })
         expect(msg).toBe('Bad request - invalid vote')
     }); 
+    it('prevents voting twice', async () => {
+      await request
+      .patch('/api/articles/2')
+      .expect(200)
+      .send({ inc_votes: 1 })
+      const { body: { msg } } = await request
+      .patch('/api/articles/2')
+      .expect(400)
+      .send({ inc_votes: 1})
+        expect(msg).toBe('Bad request')
+    });
   });
   
   describe('DELETE /api/articles/:article_id', () => {

@@ -37,6 +37,13 @@ exports.updateUser = async (currentUsername, {username, name, avatar_url}) => {
 }
 
 exports.insertUser = async ({ username, name, avatar_url, password }) => {
+  const unique = await db
+    .query(`
+    SELECT * FROM users WHERE username = $1
+    `, [username])
+    if (unique.rows.length) {
+      return Promise.reject({status: 400, msg: 'Username is taken'})
+    }
   const salt = generateSalt()
   const hash = hashPassword(password, salt)
   const user = await db
@@ -57,11 +64,11 @@ exports.login = async ({ username, password }) => {
     return Promise.reject({status: 400, msg: 'User not found'})
   }
 
-  const { salt, hash } = user.rows[0]
+  const { salt, hash, admin } = user.rows[0]
   if (!validPassword(password, hash, salt)) {
     return Promise.reject({status: 400, msg: 'Incorrect password'})
   } else {
-    const accessToken = jwt.sign({ username }, process.env.JWT_SECRET)
+    const accessToken = jwt.sign({ username, admin }, process.env.JWT_SECRET)
     return { accessToken }
   }
 }

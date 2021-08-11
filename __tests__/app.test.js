@@ -783,7 +783,7 @@ describe('Users + Users / by ID ', () => {
 describe('Users / signup / login / logout / authentication', () => {
   describe('POST /api/users/signup', () => {
     it('should add a user and respond with added user', async () => {
-      testReq = { 
+      const testReq = { 
         username: 'sonic_hedgehog',
         name: 'Joe Warburton',
         avatar_url: 'http://img.url',
@@ -800,6 +800,29 @@ describe('Users / signup / login / logout / authentication', () => {
         name: 'Joe Warburton',
         })
       )
+    });
+    it('should detect a taken username', async () => {
+      const testReq = { 
+        username: 'sonic_hedgehog',
+        name: 'Joe Warburton',
+        avatar_url: 'http://img.url',
+        password: 'pizza'
+      }
+      await request
+      .post('/api/users/signup')
+      .expect(201)
+      .send(testReq)
+      const testReq2 = {
+        username: 'sonic_hedgehog',
+        name: 'JW',
+        avatar_url: 'http://img2.url',
+        password: 'calzone'
+      }
+      const { body: { msg } } = await request
+      .post('/api/users/signup')
+      .expect(400)
+      .send(testReq)
+    expect(msg).toBe('Username is taken')
     });
   });
   describe('POST /api/users/login', () => {

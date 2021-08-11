@@ -28,6 +28,7 @@ const seed = async data => {
       username VARCHAR(100) PRIMARY KEY,
       avatar_url VARCHAR(230) NOT NULL,
       name VARCHAR(100) NOT NULL,
+      admin BOOLEAN DEFAULT false NOT NULL, 
       hash VARCHAR(256),
       salt VARCHAR(100)
     );`)

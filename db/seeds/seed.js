@@ -71,9 +71,9 @@ const seed = async data => {
 
   await db.query(`
     INSERT INTO users
-      (username, avatar_url, name)
+      (username, avatar_url, name, admin, salt, hash)
     VALUES
-      ${f.literal(orderValues(userData, ["username", "avatar_url", "name"]))};
+      ${f.literal(orderValues(userData, ["username", "avatar_url", "name", "admin", "salt", "hash"]))};
     `)
 
   const articles = await db.query(`

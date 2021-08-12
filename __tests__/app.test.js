@@ -422,21 +422,51 @@ describe('Articles / by ID', () => {
   });
   
   describe('DELETE /api/articles/:article_id', () => {
-    it('deletes an article by id param, status 204', async () => {
+    it('deletes an article by id param, status 204, when user is owner', async () => {
+      const { body: { article: { article_id } } } = await request
+        .post('/api/articles')
+        .expect(201)
+        .send({title: 'buttermilk', body: 'some content', topic: 'cats'})
       await request
-        .delete('/api/articles/3')
+        .delete(`/api/articles/${article_id}`)
         .expect(204)
+      const { body: { msg } } = await request
+        .get(`/api/articles/${article_id}`)
+        .expect(404)
+      expect(msg).toBe('Resource not found')
+    });
+    it('deletes an article when user is admin', async () => {
+      const { body: { accessToken } } = await request
+        .post('/api/users/login')
+        .send({ username: 'test_admin', password: 'calzone' })
+        .expect(200)
+      request.set('Authorization', `BEARER ${accessToken}`)
+      await request
+        .delete(`/api/articles/1`)
+        .expect(204)
+      const { body: { msg } } = await request
+        .get(`/api/articles/1`)
+        .expect(404)
+    expect(msg).toBe('Resource not found')
     });
     it('cascade deletes associated comments', async () => {
+      const { body: { article: { article_id } } } = await request
+        .post('/api/articles')
+        .expect(201)
+        .send({title: 'buttermilk', body: 'some content', topic: 'cats'})
       await request
-      .get('/api/articles/3/comments')
-      .expect(200)
+        .post(`/api/articles/${article_id}/comments`)
+        .expect(201)
+        .send({ body: "here is my interesting post" })
       await request
-      .delete('/api/articles/3')
-      .expect(204)
+        .get(`/api/articles/${article_id}/comments`)
+        .expect(200)
       await request
-      .get('/api/articles/3/comments')
-      .expect(404)
+        .delete(`/api/articles/${article_id}`)
+        .expect(204)
+      await request
+        .get(`/api/articles/${article_id}/comments`)
+        .expect(404)
     });
     it('non-existent article_id, 404', async () => {
       const { body: { msg } } = await request
@@ -450,6 +480,13 @@ describe('Articles / by ID', () => {
         .expect(400)
       expect(msg).toBe('Bad request - invalid data type')
     });  
+    it('rejects with 401 unauthorised if user is not owner or admin', async () => {
+      const { body: { msg } } = await request
+        .delete('/api/articles/1')
+        .expect(401)
+      expect(msg).toBe('Unauthorised')
+      expect()
+    });
   });
 });
 

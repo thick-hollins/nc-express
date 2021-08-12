@@ -99,7 +99,6 @@ exports.login = async ({ username, password }) => {
   if (!user.rows.length) {
     return Promise.reject({status: 400, msg: 'User not found'})
   }
-
   const { salt, hash, admin } = user.rows[0]
   if (!validPassword(password, hash, salt)) {
     return Promise.reject({status: 400, msg: 'Incorrect password'})

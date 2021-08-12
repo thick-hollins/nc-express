@@ -2,6 +2,7 @@ const db = require("../db/connection.js")
 const { checkExists } = require('../db/utils/queries')
 const { mapCols } = require('../db/utils/data-manipulation')
 const f = require('pg-format')
+const { request } = require("express")
 
 exports.selectArticleById = async article_id => {
   const article = await db
@@ -172,6 +173,14 @@ return article.rows[0]
 }
 
 exports.removeArticle = async (article_id, user) => {
+  const owner = await db
+    .query(`
+    SELECT author FROM articles
+    WHERE article_id = $1
+    `, [article_id])
+    if (!user.admin && (owner.rows.length && owner.rows[0].author !== user.username)) {
+      return Promise.reject({status: 401, msg: 'Unauthorised'})
+    }
   const res = await db
     .query(`
       DELETE FROM articles

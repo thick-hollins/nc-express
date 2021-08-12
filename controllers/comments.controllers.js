@@ -1,4 +1,5 @@
 const { removeComment, updateComment, selectNewComments } = require("../models/comments.models");
+const jwt = require('jsonwebtoken')
 
 exports.deleteComment = (req, res, next) => {
   const user = jwt.decode(req.headers.authorization.split(' ')[1])

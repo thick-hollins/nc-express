@@ -3,15 +3,23 @@ const { checkExists } = require('../db/utils/queries')
 const f = require('pg-format')
 
 exports.removeComment = async (comment_id, user) => {
-    const res = await db
-      .query(`
-        DELETE FROM comments
-        WHERE comment_id = $1
-        RETURNING *;
-        ;`, [comment_id])
-      if (!res.rows.length) {
-        return Promise.reject({status: 404, msg: 'Resource not found'})
-      }
+  const owner = await db
+    .query(`
+      SELECT author FROM comments
+      WHERE comment_id = $1
+      `, [comment_id])
+  if (!user.admin && (owner.rows.length && owner.rows[0].author !== user.username)) {
+    return Promise.reject({status: 401, msg: 'Unauthorised'})
+  }
+  const res = await db
+    .query(`
+      DELETE FROM comments
+      WHERE comment_id = $1
+      RETURNING *;
+      ;`, [comment_id])
+    if (!res.rows.length) {
+      return Promise.reject({status: 404, msg: 'Resource not found'})
+    }
   }
 
   exports.updateComment = async (comment_id, {inc_votes, body}, user) => {

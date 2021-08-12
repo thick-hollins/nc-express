@@ -662,11 +662,43 @@ describe('Comments', () => {
     }); 
   });
   describe('DELETE /api/comments/:comment_id', () => {
-    it('deletes a comment by id param, status 204', async () => {
+    it('deletes a comment by id param, status 204, when user is owner', async () => {
+      const { body: { comment: { comment_id } } } = await request
+        .post('/api/articles/7/comments')
+        .expect(201)
+        .send({ body: 'here is what I think...' })
+      console.log(comment_id)
       await request
-        .delete('/api/comments/3')
+        .delete(`/api/comments/${comment_id}`)
         .expect(204)
-    });  
+      const { body: { comments } } = await request
+        .get(`/api/articles/7/comments/`)
+        .expect(200)
+      expect(comments).toEqual([])
+    });
+    it('deletes any comment when user is admin', async () => {
+      const { body: { accessToken } } = await request
+        .post('/api/users/login')
+        .send({ username: 'test_admin', password: 'calzone' })
+        .expect(200)
+      request.set('Authorization', `BEARER ${accessToken}`)
+      await request
+        .delete(`/api/comments/2`)
+        .expect(204)
+      const { body: { comments } } = await request
+        .get(`/api/articles/1/comments`)
+        .expect(200)
+      comments.forEach(comment => {
+        expect(comment.comment_id).not.toBe(2)
+      })
+      
+    });
+    it('rejects with 401 unauthorised if user is not owner or admin', async () => {
+      const { body: { msg } } = await request
+        .delete('/api/comments/2')
+        .expect(401)
+      expect(msg).toBe('Unauthorised')
+    });
     it('non-existent comment_id, 404', async () => {
       const { body: { msg } } = await request
         .delete('/api/comments/399')

@@ -46,6 +46,16 @@ exports.updateArticle = async (article_id, { inc_votes, body }, user) => {
   if (!inc_votes && !body) {
     return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
   }
+  if (body) {
+    const owner = await db
+    .query(`
+      SELECT author FROM articles
+      WHERE article_id = $1
+      `, [article_id])
+    if (!user.admin && (owner.rows.length && owner.rows[0].author !== user.username)) {
+      return Promise.reject({status: 401, msg: 'Unauthorised'})
+    }
+  }
   const article = await db
     .query(`
     UPDATE articles

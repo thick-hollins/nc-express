@@ -364,15 +364,42 @@ describe('Articles / by ID', () => {
             expect.objectContaining({ votes: 99 })
         )
     });  
-    it('edits an article body, responds with article', async () => {
+    it('edits an article body, responds with article, when user is owner', async () => {
+      const { body: { article: { article_id } } } = await request
+        .post('/api/articles')
+        .expect(201)
+        .send({title: 'buttermilk', body: 'some content', topic: 'cats'})
+      await request
+        .patch(`/api/articles/${article_id}`)
+        .expect(200)
+        .send({body: 'new body'})
       const { body: { article } } = await request
-      .patch('/api/articles/1')
-      .expect(200)
-      .send({ body: 'new_text' })
-        expect(article).toEqual(
-            expect.objectContaining({ body: 'new_text' })
-        )
-    });  
+        .get(`/api/articles/${article_id}`)
+        .expect(200)
+      expect(article.body).toBe('new body')
+    }); 
+    it('edits any article body when user is admin', async () => {
+      const { body: { accessToken } } = await request
+        .post('/api/users/login')
+        .send({ username: 'test_admin', password: 'calzone' })
+        .expect(200)
+      request.set('Authorization', `BEARER ${accessToken}`)
+      await request
+        .patch(`/api/articles/2`)
+        .expect(200)
+        .send({body: 'new body'})
+      const { body: { article } } = await request
+        .get(`/api/articles/2`)
+        .expect(200)
+      expect(article.body).toBe('new body')
+    });
+    it('rejects with 401 unauthorised if user who is not owner or admin sends req with body', async () => {
+      const { body: { msg } } = await request
+        .patch('/api/articles/2')
+        .expect(401)
+        .send({ body: 'new body' })
+      expect(msg).toBe('Unauthorised')
+    });
     it('rejects with 404 given non-existent ID', async () => {
       const { body: { msg } } = await request
       .patch('/api/articles/200')
@@ -667,7 +694,6 @@ describe('Comments', () => {
         .post('/api/articles/7/comments')
         .expect(201)
         .send({ body: 'here is what I think...' })
-      console.log(comment_id)
       await request
         .delete(`/api/comments/${comment_id}`)
         .expect(204)
@@ -691,7 +717,6 @@ describe('Comments', () => {
       comments.forEach(comment => {
         expect(comment.comment_id).not.toBe(2)
       })
-      
     });
     it('rejects with 401 unauthorised if user is not owner or admin', async () => {
       const { body: { msg } } = await request

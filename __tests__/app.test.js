@@ -655,14 +655,42 @@ describe('Comments', () => {
             expect.objectContaining({ votes: 13 })
         )
     });  
-    it('edits a comment body, responds with comment', async () => {
-      const { body: { comment } } = await request
-      .patch('/api/comments/2').expect(200)
-      .send({ body: 'newtext' })
-        expect(comment).toEqual(
-            expect.objectContaining({ body: 'newtext' })
-        )
+    it('edits a comment body, responds with comment, if user is owner', async () => {
+      const { body: { comment: { comment_id } } } = await request
+        .post('/api/articles/7/comments')
+        .expect(201)
+        .send({ body: 'here is what I think...' })
+      await request
+        .patch(`/api/comments/${comment_id}`)
+        .expect(200)
+        .send({ body: 'new body' })
+      const { body: { comments } } = await request
+        .get(`/api/articles/7/comments/`)
+        .expect(200)
+      expect(comments[0].body).toBe('new body')
     });  
+    it('edits any comment body, responds with comment, if user is admin', async () => {
+      const { body: { accessToken } } = await request
+        .post('/api/users/login')
+        .send({ username: 'test_admin', password: 'calzone' })
+        .expect(200)
+      request.set('Authorization', `BEARER ${accessToken}`)
+      await request
+        .patch(`/api/comments/2`)
+        .expect(200)
+        .send({ body: 'new body' })
+      const { body: { comments } } = await request
+        .get(`/api/articles/1/comments/`)
+        .expect(200)
+      expect(comments.some(comment => comment.comment_id = 2 && comment.body === 'new body'))
+    });
+    it('rejects with 401 unauthorised if user is not owner or admin and sends body on req', async () => {
+      const { body: { msg } } = await request
+        .patch('/api/comments/2')
+        .expect(401)
+        .send({body: 'new body'})
+      expect(msg).toBe('Unauthorised')
+    });
     it('rejects with 404 given non-existent ID', async () => {
       const { body: { msg } } = await request
       .patch('/api/comments/200').expect(404)

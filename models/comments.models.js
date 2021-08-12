@@ -30,6 +30,16 @@ exports.removeComment = async (comment_id, user) => {
     if (!inc_votes && !body) {
       return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
     }
+    if (body) {
+      const owner = await db
+      .query(`
+        SELECT author FROM comments
+        WHERE comment_id = $1
+        `, [comment_id])
+      if (!user.admin && (owner.rows.length && owner.rows[0].author !== user.username)) {
+        return Promise.reject({status: 401, msg: 'Unauthorised'})
+      }
+    }
     const comment = await db
       .query(`
         UPDATE comments

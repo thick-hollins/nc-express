@@ -867,6 +867,35 @@ describe('Users + Users / by ID ', () => {
       .send({ username: 'my_new_username' })
         expect(user.username).toBe('my_new_username')
     });
+    it('allows patch password if user is account owner', async () => {
+      await request
+        .patch('/api/users/test_user')
+        .expect(200)
+        .send({ password: 'my_new_password' })
+      const loggedIn = await request
+        .post('/api/users/login')
+        .send({username: 'test_user', password: 'my_new_password'})
+        .expect(200)
+      expect(jwt.decode(loggedIn.body.accessToken).username)
+        .toBe('test_user')
+    });
+    it('allows patch password if user is admin', async () => {
+      const { body: { accessToken } } = await request
+        .post('/api/users/login')
+        .send({ username: 'test_admin', password: 'calzone' })
+        .expect(200)
+      request.set('Authorization', `BEARER ${accessToken}`)
+      await request
+        .patch('/api/users/icellusedkars')
+        .expect(200)
+        .send({ password: 'their_new_password' })
+      const loggedIn = await request
+        .post('/api/users/login')
+        .send({username: 'icellusedkars', password: 'their_new_password'})
+        .expect(200)
+      expect(jwt.decode(loggedIn.body.accessToken).username)
+        .toBe('icellusedkars')
+    });
     it('allows elevation to admin if user is admin', async () => {
       const { body: { accessToken } } = await request
         .post('/api/users/login')

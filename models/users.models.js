@@ -49,23 +49,45 @@ exports.selectLikes = async (username) => {
   return likes.rows;
 }
 
-exports.updateUser = async (currentUsername, {username, name, avatar_url, admin}, appUser) => {
-  if (!username && !name && !avatar_url && admin === undefined) {
+exports.updateUser = async (currentUsername, reqBody, appUser) => {
+  const {
+    username, 
+    name, 
+    avatar_url, 
+    admin, 
+    password
+  } = reqBody
+  if (!username && !name && !avatar_url && admin === undefined && !password) {
     return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
   }
   await checkExists(db, 'users', 'username', currentUsername)
   if (!appUser.admin && (currentUsername !== appUser.username || admin)) {
     return Promise.reject({status: 401, msg: 'Unauthorised'})
   }
+  let salt
+  let hash
+  if (password) {
+    salt = generateSalt()
+    hash = hashPassword(password, salt)
+  }
+  let toSet = [
+    ['username', username], 
+    ['name', name], 
+    ['avatar_url', avatar_url], 
+    ['admin', admin], 
+    ['salt', salt], 
+    ['hash', hash]]
+    .filter(pair => pair[1])
+    .map(pair => `${pair[0]} = ${f.literal(pair[1])}`)
+    .join(',')
+
   const user = await db
     .query(`
       UPDATE users
-      ${username? 'SET username =' + f.literal(username): ''}
-      ${name? 'SET name = ' + f.literal(name): ''}
-      ${avatar_url? 'SET avatar_url = ' + f.literal(avatar_url): ''}
-      ${admin? 'SET admin = ' + f.literal(admin): ''}
+      SET 
+      ${toSet}
       WHERE username = ${f.literal(currentUsername)}
-      RETURNING *;
+      RETURNING username, name, avatar_url, admin;
       ;`)
   return user.rows[0]
 }

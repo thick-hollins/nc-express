@@ -49,17 +49,21 @@ exports.selectLikes = async (username) => {
   return likes.rows;
 }
 
-exports.updateUser = async (currentUsername, {username, name, avatar_url}) => {
-  await checkExists(db, 'users', 'username', currentUsername)
-  if (!username && !name && !avatar_url) {
+exports.updateUser = async (currentUsername, {username, name, avatar_url, admin}, appUser) => {
+  if (!username && !name && !avatar_url && admin === undefined) {
     return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
+  }
+  await checkExists(db, 'users', 'username', currentUsername)
+  if (!appUser.admin && (currentUsername !== appUser.username || admin)) {
+    return Promise.reject({status: 401, msg: 'Unauthorised'})
   }
   const user = await db
     .query(`
       UPDATE users
       ${username? 'SET username =' + f.literal(username): ''}
       ${name? 'SET name = ' + f.literal(name): ''}
-      ${avatar_url? 'SET body = ' + f.literal(avatar_url): ''}
+      ${avatar_url? 'SET avatar_url = ' + f.literal(avatar_url): ''}
+      ${admin? 'SET admin = ' + f.literal(admin): ''}
       WHERE username = ${f.literal(currentUsername)}
       RETURNING *;
       ;`)

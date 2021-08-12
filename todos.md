@@ -1,4 +1,3 @@
-create admin only and author only actions
 
 checkExists mock
 

@@ -836,29 +836,86 @@ describe('Users + Users / by ID ', () => {
     });  
   });
   describe('PATCH /api/users/:username', () => {
-    it('updates username, responds with user object', async () => {
+    it('updates name, responds with user object, when user is account owner', async () => {
       const { body: { user } } = await request
-      .patch('/api/users/rogersop').expect(200)
+        .patch('/api/users/test_user').expect(200)
+        .send({ name: 'my_new_name' })
+        expect(user.name).toBe('my_new_name')
+    });
+    it('updates avatar_url, responds with user object, when user is acct owner', async () => {
+      const { body: { user } } = await request
+        .patch('/api/users/test_user')
+        .expect(200)
+        .send({ avatar_url: 'http://my.new.avatar' })
+      expect(user.avatar_url).toBe('http://my.new.avatar')
+    });
+    it('allows patch username if user is account owner', async () => {
+      const { body: { user } } = await request
+      .patch('/api/users/test_user')
+      .expect(200)
       .send({ username: 'my_new_username' })
-        expect(user).toEqual(
-            expect.objectContaining({ username: 'my_new_username' })
-        )
+        expect(user.username).toBe('my_new_username')
     });
-    it('updates name, responds with user object', async () => {
+    it('allows patch username if user is admin', async () => {
+      const { body: { accessToken } } = await request
+        .post('/api/users/login')
+        .send({ username: 'test_admin', password: 'calzone' })
+        .expect(200)
+      request.set('Authorization', `BEARER ${accessToken}`)
       const { body: { user } } = await request
-      .patch('/api/users/rogersop').expect(200)
-      .send({ name: 'my_new_name' })
-        expect(user).toEqual(
-            expect.objectContaining({ name: 'my_new_name' })
-        )
+      .patch('/api/users/test_user').expect(200)
+      .send({ username: 'my_new_username' })
+        expect(user.username).toBe('my_new_username')
     });
-    it('updates avatar_url, responds with user object', async () => {
+    it('allows elevation to admin if user is admin', async () => {
+      const { body: { accessToken } } = await request
+        .post('/api/users/login')
+        .send({ username: 'test_admin', password: 'calzone' })
+        .expect(200)
+      request.set('Authorization', `BEARER ${accessToken}`)
       const { body: { user } } = await request
-      .patch('/api/users/rogersop').expect(200)
-      .send({ username: 'http://my.new.avatar' })
-        expect(user).toEqual(
-            expect.objectContaining({ username: 'http://my.new.avatar' })
-        )
+      .patch('/api/users/test_user')
+      .expect(200)
+      .send({ admin: true })
+        expect(user.admin).toBe(true)
+    });
+    it('a normal user cannot elevate self to admin', async () => {
+      const { body: { msg } } = await request
+        .patch('/api/users/test_user')
+        .expect(401)
+        .send({ admin: true })
+      expect(msg).toBe('Unauthorised')
+    });
+    it('a normal user cannot demote an admin', async () => {
+      const { body: { msg } } = await request
+        .patch('/api/users/test_admin')
+        .expect(401)
+        .send({ admin: false })
+      expect(msg).toBe('Unauthorised')
+    });
+    it('a normal user cannot elevate another to admin', async () => {
+      const { body: { msg } } = await request
+        .patch('/api/users/icellusedkars')
+        .expect(401)
+        .send({ admin: true })
+      expect(msg).toBe('Unauthorised')
+    });
+    xit('user is logged out when username changes', async () => {
+      await request
+      .patch('/api/users/test_user')
+      .expect(200)
+      .send({ username: 'my_new_username' })
+      const { body: { msg } } = await request
+        .get('/api')
+        .expect(401)
+      expect(msg).toBe('unauthorised')
+    });
+    it('rejects with 401 unauthorised if user is not owner or admin', async () => {
+      const { body: { msg } } = await request
+        .patch('/api/users/icellusedkars')
+        .expect(401)
+        .send({ username: 'waluigi' })
+      expect(msg).toBe('Unauthorised')
     });
     it('rejects with 404 given non-existent username', async () => {
       const { body: { msg } } = await request
@@ -877,6 +934,11 @@ describe('Users + Users / by ID ', () => {
         expect(msg).toBe('Bad request - missing field(s)')
     });
     it('cascade updates author FKs on comments and articles', async () => {
+      const { body: { accessToken } } = await request
+        .post('/api/users/login')
+        .send({ username: 'test_admin', password: 'calzone' })
+        .expect(200)
+      request.set('Authorization', `BEARER ${accessToken}`)
       await request
         .patch('/api/users/butter_bridge').expect(200)
         .send({ username: 'my_new_username' })
@@ -891,7 +953,7 @@ describe('Users + Users / by ID ', () => {
         expect.objectContaining({ author: 'my_new_username' })
       )
     });
-  });
+  })
   describe('GET /api/users/:username/likes', () => {
     it('should respond with an array of all articles upvoted', async () => {
       await request
@@ -1118,5 +1180,4 @@ describe('Misc', () => {
         expect(msg).toBe('Route not found')
     });
   });
-});
-
+})

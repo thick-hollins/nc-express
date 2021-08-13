@@ -12,10 +12,7 @@ Emoji generation?
 
 logout
 
-- token expiry / refresh
 
-- change password
-
-- make password and salt NOT NULL, change test and dev data?
+- make password and salt NOT NULL, change DEV data?
 
 

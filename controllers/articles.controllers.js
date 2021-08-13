@@ -41,7 +41,10 @@ exports.getArticles = (req, res, next) => {
 exports.getComments = (req, res, next) => {
   selectComments(req.params.article_id, req.query)
     .then((comments) => {
-      res.status(200).send({ comments })
+      const {rows, total_count, page, total_pages} = comments
+      res.status(200)
+      .set({page, total_pages, total_count})
+      .send({ comments: rows })
     })
     .catch(next)
 }

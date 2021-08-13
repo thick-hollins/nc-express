@@ -520,7 +520,7 @@ describe('Articles / by ID', () => {
 describe('Articles / by ID / comments', () => {
   describe('GET /api/articles/:article_id/comments', () => {
     it('responds with all commment objects relating to the article_id parameter', async () => {
-      const { body: { comments }} = await request
+      const { body: { comments } } = await request
       .get("/api/articles/1/comments")
       .expect(200)
       expect(comments.length).toBeGreaterThan(0)

@@ -162,8 +162,7 @@ exports.selectComments = async (article_id, { limit = 10, page = 1 }) => {
       votes,
       created_at,
       author,
-      body,
-      COUNT(*) OVER() AS total_count
+      body
     FROM comments
     WHERE article_id = $1
     ORDER BY comment_id
@@ -174,23 +173,35 @@ exports.selectComments = async (article_id, { limit = 10, page = 1 }) => {
       limit,
       (page - 1) * limit 
     ])
-    let total_count
-    if (!comments.rows.length) {
-      await checkExists(db, 'articles', 'article_id', article_id)
-      total_count = 0
-    } else {
-      total_count = comments.rows[0].total_count
-    }
-    let processed = comments.rows.map(row => {
-      const {total_count, ...rest} = row
-      return Object.assign({}, rest)
-    })
-    return {
-      rows: processed, 
-      total_count, 
-      page, 
-      total_pages: Math.ceil(total_count / limit)
-    }
+  const totalQuery = await db
+  .query(`
+  SELECT
+    COUNT(*)
+  FROM comments
+  WHERE article_id = $1
+  ;`, [article_id])
+
+  let total_count
+  if (totalQuery.rows[0].count === '0') {
+    await checkExists(db, 'articles', 'article_id', article_id)
+    return {rows: [], total_count: 0}
+  } else {
+    total_count = totalQuery.rows[0].count
+  }
+  const total_pages = Math.ceil(total_count / limit)
+  if (page > total_pages) {
+    return Promise.reject({status: 404, msg: 'Resource not found'})
+  }
+  let processed = comments.rows.map(row => {
+    const {total_count, ...rest} = row
+    return Object.assign({}, rest)
+  })
+  return {
+    rows: processed, 
+    total_count, 
+    page, 
+    total_pages: Math.ceil(total_count / limit)
+  }
 }
 
 exports.insertComment = async (article_id, newComment, user) => {

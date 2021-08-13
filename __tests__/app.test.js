@@ -564,17 +564,43 @@ describe('Articles / by ID / comments', () => {
         });
       });
     });
+    it('total count header shows total number of comments', async () => {
+      const { headers: { total_count } } = await request
+        .get('/api/articles/1/comments')
+        .expect(200)
+      expect(total_count).toBe('13');
+    });
+    it('page data is given on headers, total_pages reflects total count and limit', async () => {
+      const { headers: { total_pages, page, total_count } } = await request.get('/api/articles/1/comments')
+        .expect(200)
+      expect(total_count).toBe('13')
+      expect(page).toBe('1')
+      expect(total_pages).toBe('2')
+    });
+    it('total count is not affected by pagination', async () => {
+      const { headers: { total_count } } = await request
+        .get('/api/articles/1/comments?page=2&limit=3')
+        .expect(200)
+      expect(total_count).toBe('13');
+    });
+    it('responds with 404 if no results on given page', async () => {
+      const { body: { msg } } = await request
+        .get('/api/articles/1/comments?page=200')
+        .expect(404)
+      expect(msg).toBe('Resource not found')
+    });
     it('non-existent article ID gives 404', async () => {
       const { body: { msg } } = await request
       .get('/api/articles/1000/comments')
       .expect(404)
       expect(msg).toBe('Resource not found')
     });
-    it('existent article ID with no comments gives 200 and empty array', async () => {
-      const { body: { comments } } = await request
+    it('existent article ID with no comments gives 200 and empty array, count zero', async () => {
+      const { headers: { total_count }, body: { comments } } = await request
       .get('/api/articles/2/comments')
       .expect(200)
       expect(comments).toEqual([])
+      expect(total_count).toBe('0')
     });
     it('400 - malformed article ID', async () => {
       const { body: { msg } } = await request

@@ -71,8 +71,8 @@ describe('Topics', () => {
 describe('Articles', () => {
   describe('GET /api/articles', () => {
     it('responds with an array of article objects', async () => {
-      const { headers, body: { articles } } = await request
-      .get('/api/articles?limit=99')
+      const { body: { articles } } = await request
+      .get('/api/articles')
       .expect(200)
       expect(articles).toBeInstanceOf(Array);
       expect(articles.length).toBeGreaterThan(0)
@@ -88,6 +88,18 @@ describe('Articles', () => {
               })
           );
         });
+    });
+    it('total count header shows total number of articles when no query', async () => {
+      const { headers: { total_count } } = await request
+        .get('/api/articles')
+        .expect(200)
+      expect(total_count).toBe('12');
+    });
+    it('total count is not affected by pagination', async () => {
+      const { headers: { total_count } } = await request
+        .get('/api/articles?page=2&limit=3')
+        .expect(200)
+      expect(total_count).toBe('12');
     });
     it('sorts by default by created_at, descending', async () => {
       const { body: { articles } } = await request
@@ -132,33 +144,37 @@ describe('Articles', () => {
       .send()
       expect(msg).toBe('Bad request - invalid sort')
     });
-    it('queries by author', async () => {
-      const { body: { articles } } = await request
+    it('queries by author gives count in header', async () => {
+      const { headers: { total_count }, body: { articles } } = await request
       .get('/api/articles?author=butter_bridge')
       .expect(200)
       articles.forEach((article) => {
           expect(article.author).toBe('butter_bridge')
         });
+      expect(total_count).toBe('3')
     });
-    it('queries by topic', async () => {
-      const { body: { articles } } = await request
+    it('queries by topic, gives count in header', async () => {
+      const { headers: { total_count }, body: { articles } } = await request
       .get('/api/articles?topic=mitch')
       .expect(200)
       articles.forEach((article) => {
           expect(article.topic).toBe('mitch')
         });
+      expect(total_count).toBe('11')
     });
-    it('given existent topic with no linked articles, returns an empty array', async () => {
-      const { body: { articles } } = await request
-      .get('/api/articles?topic=paper')
-      .expect(200)
+    it('given existent topic with no linked articles, returns an empty array, count is zero', async () => {
+      const { headers: { total_count }, body: { articles } } = await request
+        .get('/api/articles?topic=paper')
+        .expect(200)
       expect(articles).toEqual([])
+      expect(total_count).toBe('0')
     });
-    it('given existent author with no linked articles, returns an empty array', async () => {
-      const { body: { articles } } = await request
-      .get('/api/articles?author=lurker')
-      .expect(200)
+    it('given existent author with no linked articles, returns an empty array, count is zero', async () => {
+      const { headers: { total_count }, body: { articles } } = await request
+        .get('/api/articles?author=lurker')
+        .expect(200)
       expect(articles).toEqual([])
+      expect(total_count).toBe('0')
     });
     it('given well-formed but non-existent topic, responds with 404', async () => {
       const { body: { msg } } = await request
@@ -170,6 +186,13 @@ describe('Articles', () => {
       const { body: { articles } } = await request.get('/api/articles')
       .expect(200)
         expect(articles).toHaveLength(10)
+    });
+    it('page data is given on headers, total_pages reflects total count and limit', async () => {
+      const { headers: { total_pages, page, total_count } } = await request.get('/api/articles')
+        .expect(200)
+      expect(total_count).toBe('12')
+      expect(page).toBe('1')
+      expect(total_pages).toBe('2')
     });
     it('should allow a custom limit', async () => {
       const { body: { articles } } = await request.get('/api/articles?limit=5')
@@ -187,6 +210,12 @@ describe('Articles', () => {
         .expect(200)
         expect(articles[0].article_id).toBe(5)
     })
+    it('responds with 404 if no results on given page', async () => {
+      const { body: { msg } } = await request
+        .get('/api/articles?page=200')
+        .expect(404)
+      expect(msg).toBe('Resource not found')
+    });
     it('finds an article matching entire title', async() => {
       const { body: { articles } } = await request
       .get('/api/articles?title=UNCOVERED: catspiracy to bring down democracy')

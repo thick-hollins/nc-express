@@ -94,8 +94,7 @@ exports.selectArticles = async (queries) => {
       articles.created_at,
       articles.votes,
       COUNT(comments.article_id) AS
-        comment_count,
-      COUNT(*) OVER() AS total_count
+        comment_count
     FROM articles
     LEFT JOIN comments
     ON articles.article_id = comments.article_id
@@ -114,15 +113,34 @@ exports.selectArticles = async (queries) => {
       OFFSET
         ${f.literal((page - 1) * limit)};
     `)
-  if (topic && !articles.rows.length) {
+  const totalQuery = await db
+    .query(`
+    SELECT
+      COUNT(*)
+    FROM articles
+    ${topic || author || title ? `WHERE ` : ''}
+      ${topic? `topic = ${f.literal(topic)}`: '' }
+      ${topic && author ? `AND ` : ''}
+      ${author? `articles.author = ${f.literal(author)}` : ''}
+      ${(topic || author) && title ? `AND ` : ''}
+      ${title? `title ~* ${f.literal(title)}` : ''};
+    `)
+  if (topic && totalQuery.rows[0].count === '0') {
     await checkExists(db, 'topics', 'slug', topic)
+    return {rows: [], total_count: 0}
   }
-  if (author && !articles.rows.length) {
+  if (author && totalQuery.rows[0].count === '0') {
     await checkExists(db, 'users', 'username', author)
+    return {rows: [], total_count: 0}
   }
   let total_count
-  if (!articles.rows.length) total_count = 0
-  else total_count = articles.rows[0].total_count
+  if (!totalQuery.rows.length) total_count = 0
+  else total_count = totalQuery.rows[0].count
+  const total_pages = Math.ceil(total_count / limit)
+  if (page > total_pages) {
+    return Promise.reject({status: 404, msg: 'Resource not found'})
+  }
+
   let processed = articles.rows.map(row => {
     const {total_count, comment_count, ...rest} = row
     return Object.assign({comment_count: parseInt(comment_count)}, rest)
@@ -131,7 +149,7 @@ exports.selectArticles = async (queries) => {
     rows: processed, 
     total_count, 
     page, 
-    total_pages: Math.ceil(total_count / limit)
+    total_pages
   }
 }
 

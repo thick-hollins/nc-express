@@ -95,7 +95,7 @@ describe('Articles', () => {
         .expect(200)
       expect(total_count).toBe('12');
     });
-    it('total count is not affected by pagination', async () => {
+    it('total count is not affected by pagination when total pages not exceeded', async () => {
       const { headers: { total_count } } = await request
         .get('/api/articles?page=2&limit=3')
         .expect(200)

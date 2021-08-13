@@ -2,7 +2,6 @@ const db = require("../db/connection.js")
 const { checkExists } = require('../db/utils/queries')
 const { mapCols } = require('../db/utils/data-manipulation')
 const f = require('pg-format')
-const { request } = require("express")
 
 exports.selectArticleById = async article_id => {
   const article = await db

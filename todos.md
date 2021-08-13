@@ -1,8 +1,6 @@
 
 checkExists mock
 
-elevateToAdmin
-
 LATER:
 
 - [ ] Research and implement online image storage or random generation of images for topics /

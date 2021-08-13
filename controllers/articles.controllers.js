@@ -30,7 +30,10 @@ exports.patchArticle = (req, res, next) => {
 exports.getArticles = (req, res, next) => {
   selectArticles(req.query)
     .then((articles) => {
-      res.status(200).send({ articles });
+      const {rows, total_count, page, total_pages} = articles
+      res.status(200)
+      .set({page, total_pages, total_count})
+      .send({ articles: rows })
     })
     .catch(next)
 }

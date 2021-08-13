@@ -94,7 +94,8 @@ exports.selectArticles = async (queries) => {
       articles.created_at,
       articles.votes,
       COUNT(comments.article_id) AS
-        comment_count
+        comment_count,
+      COUNT(*) OVER() AS total_count
     FROM articles
     LEFT JOIN comments
     ON articles.article_id = comments.article_id
@@ -119,7 +120,19 @@ exports.selectArticles = async (queries) => {
   if (author && !articles.rows.length) {
     await checkExists(db, 'users', 'username', author)
   }
-  return mapCols(articles.rows, col => parseInt(col), 'comment_count')
+  let total_count
+  if (!articles.rows.length) total_count = 0
+  else total_count = articles.rows[0].total_count
+  let processed = articles.rows.map(row => {
+    const {total_count, comment_count, ...rest} = row
+    return Object.assign({comment_count: parseInt(comment_count)}, rest)
+  })
+  return {
+    rows: processed, 
+    total_count, 
+    page, 
+    total_pages: Math.ceil(total_count / limit)
+  }
 }
 
 exports.selectComments = async (article_id, { limit = 10, page = 1 }) => {

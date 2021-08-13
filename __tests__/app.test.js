@@ -71,7 +71,7 @@ describe('Topics', () => {
 describe('Articles', () => {
   describe('GET /api/articles', () => {
     it('responds with an array of article objects', async () => {
-      const { body: { articles } } = await request
+      const { headers, body: { articles } } = await request
       .get('/api/articles?limit=99')
       .expect(200)
       expect(articles).toBeInstanceOf(Array);

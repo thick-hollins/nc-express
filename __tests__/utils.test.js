@@ -256,12 +256,13 @@ describe('mapCols', () => {
     expect(dogs[0]).toEqual({ name: "Otis" });
   });
 });
-xdescribe('checkExists', () => {
+describe('checkExists', () => {
   it('should invoke db.query with a query using the arguments passed', async () => {
     const db = require('../db/connection')
     const mockQuery = jest.fn(db.query)
     db.query = mockQuery
     await checkExists(db, 'topics', 'slug', 'mitch')
     expect(mockQuery).toHaveBeenCalledWith("SELECT * FROM topics WHERE slug = 'mitch';")
+    db.end()
   });
 });

@@ -1,4 +1,4 @@
-const { selectUsers, selectUser, selectLikes, insertUser, updateUser, login } = require("../models/users.models");
+const { selectUsers, selectUser, selectLikes, insertUser, updateUser, login, logout } = require("../models/users.models");
 const jwt = require('jsonwebtoken')
 
 exports.getUsers = (req, res, next) => {
@@ -44,8 +44,16 @@ exports.patchUser = (req, res, next) => {
 
 exports.postLogin = (req, res, next) => {
   login(req.body)
-    .then((loggedIn) => {
-      res.status(200).send(loggedIn)
+    .then((token) => {
+      res.status(200).send(token)
+    })
+    .catch(next)
+}
+
+exports.postLogout = (req, res, next) => {
+  logout(req.headers.authorization.split(' ')[1])
+    .then(() => {
+      res.status(200).send({ msg: 'Logged out'})
     })
     .catch(next)
 }

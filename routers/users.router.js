@@ -5,8 +5,11 @@ const {
     postUser, 
     postLogin, 
     patchUser,
-    getLikes } = require("../controllers/users.controllers")
-const usersRouter = express.Router()
+    getLikes,
+    postLogout
+ } = require("../controllers/users.controllers")
+
+ const usersRouter = express.Router()
 
 usersRouter.route("/")
     .get(getUsers)
@@ -23,5 +26,8 @@ usersRouter.route('/signup')
 
 usersRouter.route('/login')
     .post(postLogin)
+
+usersRouter.route('/logout')
+    .post(postLogout)
 
 module.exports = usersRouter

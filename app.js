@@ -2,6 +2,7 @@ const express = require("express");
 const apiRouter = require("./routers/api.router");
 const app = express()
 const jwt = require('jsonwebtoken')
+const client = require('./db/redis-connection')
 const {
   handleCustomErrors,
   handlePsqlErrors,
@@ -16,6 +17,11 @@ app.use((req, res, next) => {
     const { headers: { authorization } } = req  
     try { 
       const token = authorization.split(' ')[1]
+      client.get(`blacklist_${token}`, (error, data) => {
+        if (data !== null) {
+          next({ status: 401, msg: 'Unauthorised' })
+        }
+      })
       jwt.verify(token, process.env.JWT_SECRET) 
       } catch (err) { 
         next({ status: 401, msg: 'Unauthorised' })

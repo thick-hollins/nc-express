@@ -1,14 +1,15 @@
-const db = require("../db/connection.js");
-const app = require("../app.js");
+const db = require("../db/connection");
+const app = require("../app");
 const defaults = require('superagent-defaults');
 const supertest = require('supertest')
 const request = defaults(supertest(app));
-const testData = require("../db/data/test-data/index.js");
-const seed = require("../db/seeds/seed.js");
+const testData = require("../db/data/test-data/index");
+const seed = require("../db/seeds/seed");
 const jwt = require('jsonwebtoken')
+const client = require('../db/redis-connection')
 
 beforeEach(() => seed(testData))
-
+beforeEach(() => client.flushdb())
 beforeEach(async() => {
   await request
     .post('/api/users/signup')
@@ -20,6 +21,7 @@ beforeEach(async() => {
     .expect(200)
   request.set('Authorization', `BEARER ${accessToken}`)
 })
+afterAll(() => client.quit())
 afterAll(() => db.end())
 
 describe('Topics', () => {
@@ -67,6 +69,7 @@ describe('Topics', () => {
     });
   });
 })
+
 describe('Articles', () => {
   describe('GET /api/articles', () => {
     describe('Default behaviour', () => {
@@ -331,6 +334,7 @@ describe('Articles', () => {
     });
   });
 })
+
 describe('Articles / by ID', () => {
   describe('GET api/articles/:article_id', () => {
     it('status 200 - returns an object with the relevant article', async () => {
@@ -548,6 +552,7 @@ describe('Articles / by ID', () => {
     });
   });
 })
+
 describe('Articles / by ID / comments', () => {
   describe('GET /api/articles/:article_id/comments', () => {
     it('responds with all commment objects relating to the article_id parameter', async () => {
@@ -692,6 +697,7 @@ describe('Articles / by ID / comments', () => {
     });
   });
 })
+
 describe('Comments', () => {
   describe('PATCH /api/comments/:comment_id', () => {
     it('increments a comments votes by given amount, responds with comment', async () => {
@@ -851,6 +857,7 @@ describe('Comments', () => {
     });
   });
 })
+
 describe('Users + Users / by ID ', () => {
   describe('GET /api/users', () => {
     it('should respond with an array of all users', async () => {
@@ -1099,6 +1106,7 @@ describe('Users + Users / by ID ', () => {
     });
   });
 })
+
 describe('Users / signup / login / logout / authentication', () => {
   describe('POST /api/users/signup', () => {
     it('should add a user and respond with added user', async () => {
@@ -1172,11 +1180,11 @@ describe('Users / signup / login / logout / authentication', () => {
         username: 'logic1000',
         password: 'octopus',
       }
-      const loggedIn = await request
+      const { body: { accessToken } } = await request
         .post('/api/users/login')
         .send(testLogin)
         .expect(200)
-      expect(jwt.decode(loggedIn.body.accessToken).username)
+      expect(jwt.decode(accessToken).username)
         .toBe(testLogin.username)
     })
     it('should refuse login with an incorrect password', async () => {
@@ -1231,6 +1239,19 @@ describe('Users / signup / login / logout / authentication', () => {
     expect(msg).toBe('Bad request - missing field(s)')
     });
   });
+  describe('POST /api/users/logout', () => {
+    it('logs out current user', async () => {
+      const { body: { msg } } = await request
+        .post('/api/users/logout')
+        .send()
+        .expect(200)
+      expect(msg).toBe('Logged out')
+      const { body: { msg: msg2 } } = await request
+        .get('/api/articles')
+        .expect(401)
+      expect(msg2).toBe('Unauthorised')
+    });
+  });
   describe('auth middleware', () => {
     it('responds with 401 - Unauthorised when JWT not in header', async () => {
       const { body: { msg }} = await request
@@ -1241,6 +1262,7 @@ describe('Users / signup / login / logout / authentication', () => {
     });
   });
 })
+
 describe('Misc', () => {
   describe('GET /api/', () => {
     it('should serve up an object with keys describing endpoints', async () => {

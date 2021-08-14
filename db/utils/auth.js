@@ -1,5 +1,4 @@
 const crypto = require('crypto')
-const jwt = require('jsonwebtoken')
 
 exports.generateSalt = () => {
     return crypto.randomBytes(16).toString('hex')

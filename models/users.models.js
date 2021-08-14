@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken')
 const f = require('pg-format')
 const { checkExists } = require('../db/utils/queries')
 const {generateSalt, hashPassword, validPassword} = require('../db/utils/auth')
+const client = require('../db/redis-connection')
 
 exports.selectUsers = async () => {
   const users = await db
@@ -129,7 +130,13 @@ exports.login = async ({ username, password }) => {
   if (!validPassword(password, hash, salt)) {
     return Promise.reject({status: 400, msg: 'Incorrect password'})
   } else {
-    const accessToken = jwt.sign({ username, admin }, process.env.JWT_SECRET)
+    const accessToken = jwt.sign({ username, admin }, process.env.JWT_SECRET, {expiresIn: "1h"})
     return { accessToken }
   }
+}
+
+exports.logout = async (token) => {
+  const { exp } = jwt.decode(token)
+  client.setex(`blacklist_${token}`, exp, true);
+  return
 }

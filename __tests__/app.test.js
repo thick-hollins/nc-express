@@ -7,8 +7,9 @@ const testData = require("../db/data/test-data/index.js");
 const seed = require("../db/seeds/seed.js");
 const jwt = require('jsonwebtoken')
 
-beforeEach(() => seed(testData));
-beforeEach(async () => {
+beforeEach(() => seed(testData))
+
+beforeEach(async() => {
   await request
     .post('/api/users/signup')
     .send({ username: 'test_user', name: 'test', avatar_url: 'test', password: 'pizza' })
@@ -18,8 +19,8 @@ beforeEach(async () => {
     .send({ username: 'test_user', password: 'pizza' })
     .expect(200)
   request.set('Authorization', `BEARER ${accessToken}`)
-});
-afterAll(() => db.end());
+})
+afterAll(() => db.end())
 
 describe('Topics', () => {
   describe("GET /api/topics", () => {
@@ -37,7 +38,6 @@ describe('Topics', () => {
         });
     });
   })
-  
   describe('POST /api/topics', () => {
     it('should add a topic and respond with the added topic', async () => {
       testReq = {
@@ -66,183 +66,191 @@ describe('Topics', () => {
       expect(msg).toBe('Bad request - missing field(s)');
     });
   });
-});
-
+})
 describe('Articles', () => {
   describe('GET /api/articles', () => {
-    it('responds with an array of article objects', async () => {
-      const { body: { articles } } = await request
-      .get('/api/articles')
-      .expect(200)
-      expect(articles).toBeInstanceOf(Array);
-      expect(articles.length).toBeGreaterThan(0)
-      articles.forEach((article) => {
-          expect(article).toEqual(
-              expect.objectContaining({
-              article_id: expect.any(Number),
-              title: expect.any(String),
-              topic: expect.any(String),
-              created_at: expect.any(String),
-              votes: expect.any(Number),
-              comment_count: expect.any(Number),
-              })
-          );
-        });
-    });
-    it('total count header shows total number of articles when no query', async () => {
-      const { headers: { total_count } } = await request
+    describe('Default behaviour', () => {
+      it('responds with an array of article objects', async () => {
+        const { body: { articles } } = await request
         .get('/api/articles')
         .expect(200)
-      expect(total_count).toBe('12');
-    });
-    it('total count is not affected by pagination when total pages not exceeded', async () => {
-      const { headers: { total_count } } = await request
-        .get('/api/articles?page=2&limit=3')
-        .expect(200)
-      expect(total_count).toBe('12');
-    });
-    it('sorts by default by created_at, descending', async () => {
-      const { body: { articles } } = await request
-      .get('/api/articles')
-      expect(articles).toBeSortedBy('created_at', { descending: true })
-    });
-    it('sorts by all other columns', async () => {
-      const cols = [
-        'author',
-        'title',
-        'article_id',
-        'topic',
-        'created_at',
-        'votes',
-        'comment_count',
-      ].map((col) => {
-        return request
-          .get(`/api/articles?sort_by=${col}`)
-          .expect(200)
-          .then(({ body: { articles } }) => {
-            expect(articles).toBeSortedBy(col, { descending: true });
+        expect(articles).toBeInstanceOf(Array);
+        expect(articles.length).toBeGreaterThan(0)
+        articles.forEach((article) => {
+            expect(article).toEqual(
+                expect.objectContaining({
+                article_id: expect.any(Number),
+                title: expect.any(String),
+                topic: expect.any(String),
+                created_at: expect.any(String),
+                votes: expect.any(Number),
+                comment_count: expect.any(Number),
+                })
+            );
           });
       });
-      await Promise.all(cols)
+      it('total count header shows total number of articles when no query', async () => {
+        const { headers: { total_count } } = await request
+          .get('/api/articles')
+          .expect(200)
+        expect(total_count).toBe('12');
+      });
     });
-    it('sorts ascending when given as order', async () => {
-      const { body: { articles } } = await request
-      .get('/api/articles?order=asc&limit=15')
-      expect(articles).toBeSortedBy('created_at', { descending: false })
-    });
-    it('error 400 given sort col not in table', async () => {
-      const { body: { msg } } = await request
-      .get('/api/articles?sort_by=not_a_col')
-      .expect(400)
-      .send()
-      expect(msg).toBe('Bad request - invalid sort')
-    });
-    it('error 400 given sort order not asc or desc', async () => {
-      const { body: { msg } } = await request
-      .get('/api/articles?order=not_an_order')
-      .expect(400)
-      .send()
-      expect(msg).toBe('Bad request - invalid sort')
-    });
-    it('queries by author gives count in header', async () => {
-      const { headers: { total_count }, body: { articles } } = await request
-      .get('/api/articles?author=butter_bridge')
-      .expect(200)
-      articles.forEach((article) => {
-          expect(article.author).toBe('butter_bridge')
+    describe('Sorting', () => {
+      it('sorts by default by created_at, descending', async () => {
+        const { body: { articles } } = await request
+        .get('/api/articles')
+        expect(articles).toBeSortedBy('created_at', { descending: true })
+      });
+      it('sorts by all other columns', async () => {
+        const cols = [
+          'author',
+          'title',
+          'article_id',
+          'topic',
+          'created_at',
+          'votes',
+          'comment_count',
+        ].map((col) => {
+          return request
+            .get(`/api/articles?sort_by=${col}`)
+            .expect(200)
+            .then(({ body: { articles } }) => {
+              expect(articles).toBeSortedBy(col, { descending: true });
+            });
         });
-      expect(total_count).toBe('3')
+        await Promise.all(cols)
+      });
+      it('sorts ascending when given as order', async () => {
+        const { body: { articles } } = await request
+        .get('/api/articles?order=asc&limit=15')
+        expect(articles).toBeSortedBy('created_at', { descending: false })
+      });
+      it('error 400 given sort col not in table', async () => {
+        const { body: { msg } } = await request
+        .get('/api/articles?sort_by=not_a_col')
+        .expect(400)
+        .send()
+        expect(msg).toBe('Bad request - invalid sort')
+      });
+      it('error 400 given sort order not asc or desc', async () => {
+        const { body: { msg } } = await request
+        .get('/api/articles?order=not_an_order')
+        .expect(400)
+        .send()
+        expect(msg).toBe('Bad request - invalid sort')
+      });
     });
-    it('queries by topic, gives count in header', async () => {
-      const { headers: { total_count }, body: { articles } } = await request
-      .get('/api/articles?topic=mitch')
-      .expect(200)
-      articles.forEach((article) => {
-          expect(article.topic).toBe('mitch')
-        });
-      expect(total_count).toBe('11')
-    });
-    it('given existent topic with no linked articles, returns an empty array, count is zero', async () => {
-      const { headers: { total_count }, body: { articles } } = await request
-        .get('/api/articles?topic=paper')
+    describe('Queries', () => {
+      it('queries by author gives count in header', async () => {
+        const { headers: { total_count }, body: { articles } } = await request
+        .get('/api/articles?author=butter_bridge')
         .expect(200)
-      expect(articles).toEqual([])
-      expect(total_count).toBe('0')
-    });
-    it('given existent author with no linked articles, returns an empty array, count is zero', async () => {
-      const { headers: { total_count }, body: { articles } } = await request
-        .get('/api/articles?author=lurker')
+        articles.forEach((article) => {
+            expect(article.author).toBe('butter_bridge')
+          });
+        expect(total_count).toBe('3')
+      });
+      it('queries by topic, gives count in header', async () => {
+        const { headers: { total_count }, body: { articles } } = await request
+        .get('/api/articles?topic=mitch')
         .expect(200)
-      expect(articles).toEqual([])
-      expect(total_count).toBe('0')
-    });
-    it('given well-formed but non-existent topic, responds with 404', async () => {
-      const { body: { msg } } = await request
-      .get('/api/articles?topic=tennis')
-      .expect(404)
-      expect(msg).toBe('Resource not found')
-    });
-    it('should return maximum 10 results by default', async () => {
-      const { body: { articles } } = await request.get('/api/articles')
-      .expect(200)
-        expect(articles).toHaveLength(10)
-    });
-    it('page data is given on headers, total_pages reflects total count and limit', async () => {
-      const { headers: { total_pages, page, total_count } } = await request.get('/api/articles')
-        .expect(200)
-      expect(total_count).toBe('12')
-      expect(page).toBe('1')
-      expect(total_pages).toBe('2')
-    });
-    it('should allow a custom limit', async () => {
-      const { body: { articles } } = await request.get('/api/articles?limit=5')
-      .expect(200)
-        expect(articles).toHaveLength(5)
-    });
-    it('requesting page 2 should skip the first n results where n is limit', async () => {
-      const { body: { articles } } = await request
-        .get('/api/articles?sort_by=article_id&order=asc&page=2&limit=2')
-        expect(articles[0].article_id).toBe(3)
-    });
-    it('requesting page 3 should skip the first n results where n is limit * 2', async () => {
-      const { body: { articles } } = await request
-        .get('/api/articles?sort_by=article_id&order=asc&page=3&limit=2')
-        .expect(200)
-        expect(articles[0].article_id).toBe(5)
-    })
-    it('responds with 404 if no results on given page', async () => {
-      const { body: { msg } } = await request
-        .get('/api/articles?page=200')
+        articles.forEach((article) => {
+            expect(article.topic).toBe('mitch')
+          });
+        expect(total_count).toBe('11')
+      });
+      it('given existent topic with no linked articles, returns an empty array, count is zero', async () => {
+        const { headers: { total_count }, body: { articles } } = await request
+          .get('/api/articles?topic=paper')
+          .expect(200)
+        expect(articles).toEqual([])
+        expect(total_count).toBe('0')
+      });
+      it('given existent author with no linked articles, returns an empty array, count is zero', async () => {
+        const { headers: { total_count }, body: { articles } } = await request
+          .get('/api/articles?author=lurker')
+          .expect(200)
+        expect(articles).toEqual([])
+        expect(total_count).toBe('0')
+      });
+      it('given well-formed but non-existent topic, responds with 404', async () => {
+        const { body: { msg } } = await request
+        .get('/api/articles?topic=tennis')
         .expect(404)
-      expect(msg).toBe('Resource not found')
+        expect(msg).toBe('Resource not found')
+      });
     });
-    it('finds an article matching entire title', async() => {
-      const { body: { articles } } = await request
-      .get('/api/articles?title=UNCOVERED: catspiracy to bring down democracy')
-      .expect(200)
-      expect(articles[0]).toEqual(
-        expect.objectContaining({
-        title: 'UNCOVERED: catspiracy to bring down democracy'
+    describe('Pagination', () => {
+      it('should return maximum 10 results by default', async () => {
+        const { body: { articles } } = await request.get('/api/articles')
+        .expect(200)
+          expect(articles).toHaveLength(10)
+      });
+      it('page data is given on headers, total_pages reflects total count and limit', async () => {
+        const { headers: { total_pages, page, total_count } } = await request.get('/api/articles')
+          .expect(200)
+        expect(total_count).toBe('12')
+        expect(page).toBe('1')
+        expect(total_pages).toBe('2')
+      });
+      it('should allow a custom limit', async () => {
+        const { body: { articles } } = await request.get('/api/articles?limit=5')
+        .expect(200)
+          expect(articles).toHaveLength(5)
+      });
+      it('requesting page 2 should skip the first n results where n is limit', async () => {
+        const { body: { articles } } = await request
+          .get('/api/articles?sort_by=article_id&order=asc&page=2&limit=2')
+          expect(articles[0].article_id).toBe(3)
+      });
+      it('requesting page 3 should skip the first n results where n is limit * 2', async () => {
+        const { body: { articles } } = await request
+          .get('/api/articles?sort_by=article_id&order=asc&page=3&limit=2')
+          .expect(200)
+          expect(articles[0].article_id).toBe(5)
       })
-    );
+      it('responds with 404 if no results on given page', async () => {
+        const { body: { msg } } = await request
+          .get('/api/articles?page=200')
+          .expect(404)
+        expect(msg).toBe('Resource not found')
+      });
+      it('total count is not affected by pagination when total pages not exceeded', async () => {
+        const { headers: { total_count } } = await request
+          .get('/api/articles?page=2&limit=3')
+          .expect(200)
+        expect(total_count).toBe('12');
+      });
     });
-    it('finds an article case insensitively', async() => {
-      const { body: { articles } } = await request
-      .get('/api/articles?title=UNCOVERED: CATspiracy to bring down democracy')
-      .expect(200)
-      expect(articles[0].title).toBe('UNCOVERED: catspiracy to bring down democracy')
-    });
-    it('finds multiple articles by substring', async () => {
-      const { body: { articles } } = await request
-      .get('/api/articles?title=cat')
-      .expect(200)
-      expect(articles.length).toBeGreaterThan(0)
-      articles.forEach(article => {
-        expect(article.title).toContain('cat')
-      })
+    describe('Search', () => {
+      it('finds an article matching entire title', async() => {
+        const { body: { articles } } = await request
+        .get('/api/articles?title=UNCOVERED: catspiracy to bring down democracy')
+        .expect(200)
+        expect(articles[0]).toEqual(
+          expect.objectContaining({
+          title: 'UNCOVERED: catspiracy to bring down democracy'
+        })
+      );
+      });
+      it('finds an article case insensitively', async() => {
+        const { body: { articles } } = await request
+        .get('/api/articles?title=UNCOVERED: CATspiracy to bring down democracy')
+        .expect(200)
+        expect(articles[0].title).toBe('UNCOVERED: catspiracy to bring down democracy')
+      });
+      it('finds multiple articles by substring', async () => {
+        const { body: { articles } } = await request
+        .get('/api/articles?title=cat')
+        .expect(200)
+        expect(articles.length).toBeGreaterThan(0)
+        articles.forEach(article => {
+          expect(article.title).toContain('cat')
+        })
+      });
     });
   });
-
   describe('POST /api/articles', () => {
     it('should add an article and respond with added article', async () => {
       testReq = {
@@ -288,7 +296,6 @@ describe('Articles', () => {
       expect(msg).toBe('Bad request');
     });
   });
-
   describe('GET /api/articles/new', () => {
     it('responds with articles created in last 10 minutes', async () => {
       testReq = {
@@ -323,8 +330,7 @@ describe('Articles', () => {
       })
     });
   });
-});
-
+})
 describe('Articles / by ID', () => {
   describe('GET api/articles/:article_id', () => {
     it('status 200 - returns an object with the relevant article', async () => {
@@ -345,7 +351,6 @@ describe('Articles / by ID', () => {
             })
         );
     })
-  
     it('calculates comment count', async () => {
       let res1 = request
         .get('/api/articles/1')
@@ -373,7 +378,6 @@ describe('Articles / by ID', () => {
       expect(msg).toBe('Bad request - invalid data type')
     });
   })
-  
   describe('PATCH /api/articles/:article_id', () => {
     it('increments an articles vote, responds with article', async () => {
       const { body: { article } } = await request
@@ -476,7 +480,6 @@ describe('Articles / by ID', () => {
         expect(msg).toBe('Bad request')
     });
   });
-  
   describe('DELETE /api/articles/:article_id', () => {
     it('deletes an article by id param, status 204, when user is owner', async () => {
       const { body: { article: { article_id } } } = await request
@@ -544,8 +547,7 @@ describe('Articles / by ID', () => {
       expect()
     });
   });
-});
-
+})
 describe('Articles / by ID / comments', () => {
   describe('GET /api/articles/:article_id/comments', () => {
     it('responds with all commment objects relating to the article_id parameter', async () => {
@@ -629,7 +631,6 @@ describe('Articles / by ID / comments', () => {
         expect(comments[0].comment_id).toBe(6)
     })
   });
-  
   describe('POST /api/articles/:article_id/comments', () => {
     it('take a request with username and body and respond with the created comment', async () => {
       const testPost = { body: "here is my interesting post" }
@@ -690,8 +691,7 @@ describe('Articles / by ID / comments', () => {
         }))
     });
   });
-});
-
+})
 describe('Comments', () => {
   describe('PATCH /api/comments/:comment_id', () => {
     it('increments a comments votes by given amount, responds with comment', async () => {
@@ -850,8 +850,7 @@ describe('Comments', () => {
       })
     });
   });
-});
-
+})
 describe('Users + Users / by ID ', () => {
   describe('GET /api/users', () => {
     it('should respond with an array of all users', async () => {
@@ -1099,8 +1098,7 @@ describe('Users + Users / by ID ', () => {
       expect(msg).toBe('Resource not found')
     });
   });
-});
-
+})
 describe('Users / signup / login / logout / authentication', () => {
   describe('POST /api/users/signup', () => {
     it('should add a user and respond with added user', async () => {
@@ -1242,8 +1240,7 @@ describe('Users / signup / login / logout / authentication', () => {
       expect(msg).toBe('Unauthorised')
     });
   });
-});
-
+})
 describe('Misc', () => {
   describe('GET /api/', () => {
     it('should serve up an object with keys describing endpoints', async () => {

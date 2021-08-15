@@ -9,6 +9,6 @@ LATER:
 logout
 
 
-- make password and salt NOT NULL, change DEV data?
+- make password and salt NOT NULL, change DEV data
 
 

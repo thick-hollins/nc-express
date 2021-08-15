@@ -43,7 +43,6 @@ exports.patchUser = (req, res, next) => {
 }
 
 exports.postLogin = (req, res, next) => {
-  console.log('in contr')
   login(req.body)
     .then((token) => {
       res.status(200).send(token)

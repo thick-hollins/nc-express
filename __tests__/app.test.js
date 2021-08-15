@@ -1142,10 +1142,10 @@ describe('Users / signup / login / logout / authentication', () => {
   describe('POST /api/users/signup', () => {
     it('should add a user and respond with added user', async () => {
       const testReq = { 
-        username: 'sonic_hedgehog',
-        name: 'Joe Warburton',
-        avatar_url: 'http://img.url',
-        password: 'pizza'
+        "username": "sonic_hedgehog",
+        "name": "Joe Warburton",
+        "avatar_url": "http://img.url",
+        "password": "pizza"
       }
       const { body: { user } } = await request
       .post('/api/users/signup')

@@ -14,19 +14,24 @@ app.use((req, res, next) => {
       req.originalUrl === '/api/users/login') {
     return next()
   } else {
-    const { headers: { authorization } } = req  
-    try { 
-      const token = authorization.split(' ')[1]
-      client.get(`blacklist_${token}`, (error, data) => {
-        if (data !== null) {
-          next({ status: 401, msg: 'Unauthorised' })
-        }
-      })
-      jwt.verify(token, process.env.JWT_SECRET) 
-      } catch (err) { 
+    const { headers: { authorization } } = req
+    const token = authorization.split(' ')[1]
+    const decoded = jwt.decode(token)
+    if (!decoded) return next({ status: 401, msg: 'Unauthorised' })
+    const { username } = decoded
+
+    client.get(username, (err, data) => {
+      if(err) next(err)
+      if (data !== null) {
         next({ status: 401, msg: 'Unauthorised' })
-    }
-  next()
+      }
+      try {
+        jwt.verify(token, process.env.JWT_SECRET) 
+      } catch (err) { 
+          next({ status: 401, msg: 'Unauthorised' })
+      }
+    next()
+    })
   }
 })
 

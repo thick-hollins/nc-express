@@ -990,7 +990,7 @@ describe('Users + Users / by ID ', () => {
         .send({ admin: true })
       expect(msg).toBe('Unauthorised')
     });
-    xit('user is logged out when username changes', async () => {
+    it('user is logged out when username changes', async () => {
       await request
       .patch('/api/users/test_user')
       .expect(200)
@@ -998,7 +998,31 @@ describe('Users + Users / by ID ', () => {
       const { body: { msg } } = await request
         .get('/api')
         .expect(401)
-      expect(msg).toBe('unauthorised')
+      expect(msg).toBe('Unauthorised')
+    });
+    it('admin changes another username, other user logged out, admin still logged in', async () => {
+      const { body: { accessToken: test_userAccessToken } } = await request
+        .post('/api/users/login')
+        .send({ username: 'test_user', password: 'pizza' })
+        .expect(200)
+      const { body: { accessToken: adminAccessToken } } = await request
+        .post('/api/users/login')
+        .send({ username: 'test_admin', password: 'calzone' })
+        .expect(200)
+      request.set('Authorization', `BEARER ${adminAccessToken}`)
+      await request
+        .patch('/api/users/test_user')
+        .expect(200)
+        .send({ username: 'my_new_username' })
+      request.set('Authorization', `BEARER ${test_userAccessToken}`)
+      const { body: { msg } } = await request
+        .get('/api')
+        .expect(401)
+      expect(msg).toBe('Unauthorised')
+      request.set('Authorization', `BEARER ${adminAccessToken}`)
+      await request
+        .get('/api')
+        .expect(200)
     });
     it('rejects with 401 unauthorised if user is not owner or admin', async () => {
       const { body: { msg } } = await request
@@ -1032,10 +1056,17 @@ describe('Users + Users / by ID ', () => {
       await request
         .patch('/api/users/butter_bridge').expect(200)
         .send({ username: 'my_new_username' })
-      const res1 = await request
+      const { body: { accessToken: accessToken2 } } = await request
+        .post('/api/users/login')
+        .expect(200)
+        .send({username: 'test_user', password: 'pizza'})
+      request.set('Authorization', `BEARER ${accessToken2}`)
+        const res1 = await request
         .get('/api/articles/1')
+        .expect(200)
       const res2 = await request
         .get('/api/articles/1/comments')
+        .expect(200)
       expect(res1.body.article).toEqual(
         expect.objectContaining({ author: 'my_new_username' })
       )

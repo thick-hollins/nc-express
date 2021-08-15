@@ -34,8 +34,8 @@ exports.getLikes = (req, res, next) => {
 }
 
 exports.patchUser = (req, res, next) => {
-  const user = jwt.decode(req.headers.authorization.split(' ')[1])
-  updateUser(req.params.username, req.body, user)
+  const token = req.headers.authorization.split(' ')[1]
+  updateUser(req.params.username, req.body, token)
     .then(user => {
       res.status(200).send({ user })
     })

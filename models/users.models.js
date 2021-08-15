@@ -50,7 +50,8 @@ exports.selectLikes = async (username) => {
   return likes.rows;
 }
 
-exports.updateUser = async (currentUsername, reqBody, appUser) => {
+exports.updateUser = async (currentUsername, reqBody, token) => {
+  const appUser = jwt.decode(token)
   const {
     username, 
     name, 
@@ -90,6 +91,9 @@ exports.updateUser = async (currentUsername, reqBody, appUser) => {
       WHERE username = ${f.literal(currentUsername)}
       RETURNING username, name, avatar_url, admin;
       ;`)
+  if (username || password) {
+    client.setex(currentUsername, 3600, Date.now())
+  }
   return user.rows[0]
 }
 
@@ -136,7 +140,8 @@ exports.login = async ({ username, password }) => {
 }
 
 exports.logout = async (token) => {
-  const { exp } = jwt.decode(token)
-  client.setex(`blacklist_${token}`, exp, true);
+  const { username, exp } = jwt.decode(token)
+  client.setex(username, exp, Date.now())
+
   return
 }

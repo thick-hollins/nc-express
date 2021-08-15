@@ -1291,6 +1291,20 @@ describe('Users / signup / login / logout / authentication', () => {
         .expect(401)
       expect(msg).toBe('Unauthorised')
     });
+    it('can log out then log in again', async () => {
+      await request
+        .post('/api/users/logout')
+        .send()
+        .expect(200)
+      const { body: { accessToken } } = await request
+        .post('/api/users/login')
+        .send({ username: 'test_user', password: 'pizza' })
+        .expect(200)
+      request.set('Authorization', `BEARER ${accessToken}`)
+      await request
+        .get('/api')
+        .expect(200)
+    });
   });
 })
 

@@ -1,5 +1,6 @@
 const express = require("express");
 const apiRouter = require("./routers/api.router");
+const cors = require('cors');
 const app = express()
 const {
   handleCustomErrors,
@@ -7,6 +8,8 @@ const {
   handleServerErrors,
 } = require('./errors.js')
 const { authoriseRequest } = require('./auth-middleware')
+
+app.use(cors())
 
 app.use(authoriseRequest)
 

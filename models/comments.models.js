@@ -30,6 +30,14 @@ exports.removeComment = async (comment_id, user) => {
     if (!inc_votes && !body) {
       return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
     }
+    const up = inc_votes === 1
+    await db.query(`
+      INSERT INTO comment_votes
+        (comment_id, username, up)
+      VALUES
+        ($1, $2, $3)
+    `, [comment_id, user.username, up])
+
     if (body) {
       const owner = await db
       .query(`

@@ -26,7 +26,7 @@ exports.postUser = (req, res, next) => {
 }
 
 exports.getLikes = (req, res, next) => {
-  selectLikes(req.params.username)
+  selectLikes(req.params.username, req.query)
     .then(likes => {
       res.status(200).send({ likes })
     })

@@ -4,6 +4,7 @@ const f = require('pg-format')
 const { checkExists } = require('../db/utils/queries')
 const {generateSalt, hashPassword, validPassword} = require('../db/utils/auth')
 const client = require('../db/redis-connection')
+const comments = require("../db/data/test-data/comments")
 
 exports.selectUsers = async () => {
   const users = await db
@@ -20,34 +21,69 @@ exports.selectUser = async (username) => {
   return user.rows[0];
 }
 
-exports.selectLikes = async (username) => {
+exports.selectLikes = async (username, { liketype }) => {
   await checkExists(db, 'users', 'username', username)
-  const likes = await db
+  if (liketype) if (!['articles', 'comments'].includes(liketype)) {
+    return Promise.reject({status: 400, msg: 'Bad request - invalid query'})
+  }
+  let articleLikes = []
+  if (!liketype || liketype === 'articles') {
+    articleLikes = await db
+      .query(`
+        SELECT 
+          articles.article_id,
+          articles.title,
+          articles.votes,
+          articles.topic,
+          articles.author,
+          articles.created_at,
+          articles.body 
+        FROM 
+          users
+        JOIN
+          article_votes
+        ON
+          users.username = article_votes.username
+        JOIN
+          articles
+        ON
+          articles.article_id = article_votes.article_id
+        WHERE
+          users.username = $1
+        ORDER BY
+          articles.created_at DESC;
+        ;`, [username])
+  }
+  let commentLikes = []
+  if (!liketype || liketype === 'comments') {
+    commentLikes = await db
     .query(`
       SELECT 
-        articles.article_id,
-        articles.title,
-        articles.votes,
-        articles.topic,
-        articles.author,
-        articles.created_at,
-        articles.body 
+        comments.comment_id,
+        comments.author,
+        comments.article_id,
+        comments.votes,
+        comments.created_at,
+        comments.body 
       FROM 
         users
       JOIN
-        article_votes
+        comment_votes
       ON
-        users.username = article_votes.username
+        users.username = comment_votes.username
       JOIN
-        articles
+        comments
       ON
-        articles.article_id = article_votes.article_id
+        comments.comment_id = comment_votes.comment_id
       WHERE
         users.username = $1
-        AND
-          article_votes.up = true
+      ORDER BY
+        comments.created_at DESC;
       ;`, [username])
-  return likes.rows;
+  }
+  if (liketype && liketype === 'comments') return {comments: commentLikes.rows}
+  if (liketype && liketype === 'articles') return {articles: articleLikes.rows}
+  else return {articles: articleLikes.rows, comments: commentLikes.rows}
 }
 
 exports.updateUser = async (currentUsername, reqBody, token) => {
@@ -134,7 +170,7 @@ exports.login = async ({ username, password }) => {
   if (!validPassword(password, hash, salt)) {
     return Promise.reject({status: 400, msg: 'Incorrect password'})
   } else {
-    const accessToken = jwt.sign({ username, admin, iat: Date.now() }, process.env.JWT_SECRET)
+    const accessToken = jwt.sign({ username, admin, iat: Date.now() }, process.env.JWT_SECRET, {expiresIn: '1h'})
     return { accessToken }
   }
 }

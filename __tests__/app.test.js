@@ -1085,51 +1085,20 @@ describe('Users + Users / by ID ', () => {
         .patch('/api/articles/4')
         .expect(200)
         .send({ inc_votes: 1 })
+      const { body: { likes: { articles } } } = await request
+        .get('/api/users/test_user/likes')
+        .expect(200)
+      expect(articles).toHaveLength(2)
+      expect(articles[0].article_id).toBe(2)
+      expect(articles[1].article_id).toBe(4)
+    });
+    it('two empty arrays if no likes', async () => {
       const { body: { likes } } = await request
         .get('/api/users/test_user/likes')
         .expect(200)
-      expect(likes).toHaveLength(2)
-      expect(likes[0].article_id).toBe(2)
-      expect(likes[1].article_id).toBe(4)
+      expect(likes).toEqual({articles: [], comments: []})
     });
-    it('should respond with an array of all articles upvoted', async () => {
-      await request
-        .patch('/api/articles/2')
-        .expect(200)
-        .send({ inc_votes: 1 })
-      await request
-        .patch('/api/articles/4')
-        .expect(200)
-        .send({ inc_votes: 1 })
-      const { body: { likes } } = await request
-        .get('/api/users/test_user/likes')
-        .expect(200)
-      expect(likes).toHaveLength(2)
-      expect(likes[0].article_id).toBe(2)
-      expect(likes[1].article_id).toBe(4)
-    });
-    it('should ignore downvotes', async () => {
-      await request
-        .patch('/api/articles/2')
-        .expect(200)
-        .send({ inc_votes: 1 })
-      await request
-        .patch('/api/articles/4')
-        .expect(200)
-        .send({ inc_votes: -1 })
-      const { body: { likes } } = await request
-        .get('/api/users/test_user/likes')
-        .expect(200)
-      expect(likes).toHaveLength(1)
-      expect(likes[0].article_id).toBe(2)
-    });
-    it('empty array if no likes', async () => {
-      const { body: { likes } } = await request
-        .get('/api/users/test_user/likes')
-        .expect(200)
-      expect(likes).toEqual([])
-    });
-    it('should ', async () => {
+    it('should return 404 given a non-existent user', async () => {
       const { body: { msg } } = await request
         .get('/api/users/not_a_user/likes')
         .expect(404)

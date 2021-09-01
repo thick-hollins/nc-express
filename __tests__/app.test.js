@@ -628,12 +628,12 @@ describe('Articles / by ID / comments', () => {
     it('requesting page 2 should skip the first n results where n is limit', async () => {
       const { body: { comments } } = await request
         .get('/api/articles/1/comments?limit=2&page=2')
-        expect(comments[0].comment_id).toBe(4)
+        expect(comments[0].comment_id).toBe(11)
     });
     it('requesting page 3 should skip the first n results where n is limit * 2', async () => {
       const { body: { comments } } = await request
         .get('/api/articles/1/comments?limit=2&page=3')
-        expect(comments[0].comment_id).toBe(6)
+        expect(comments[0].comment_id).toBe(10)
     })
   });
   describe('POST /api/articles/:article_id/comments', () => {
@@ -1070,7 +1070,7 @@ describe('Users + Users / by ID ', () => {
       expect(res1.body.article).toEqual(
         expect.objectContaining({ author: 'my_new_username' })
       )
-      expect(res2.body.comments[0]).toEqual(
+      expect(res2.body.comments[1]).toEqual(
         expect.objectContaining({ author: 'my_new_username' })
       )
     });

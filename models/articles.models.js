@@ -164,7 +164,7 @@ exports.selectComments = async (article_id, { limit = 10, page = 1 }) => {
       body
     FROM comments
     WHERE article_id = $1
-    ORDER BY comment_id
+    ORDER BY created_at DESC
     LIMIT $2
     OFFSET $3
     ;`, [

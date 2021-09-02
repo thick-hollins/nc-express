@@ -37,7 +37,8 @@ exports.selectLikes = async (username, { liketype }) => {
           articles.topic,
           articles.author,
           articles.created_at,
-          articles.body 
+          articles.body,
+          article_votes.up
         FROM 
           users
         JOIN
@@ -64,7 +65,8 @@ exports.selectLikes = async (username, { liketype }) => {
         comments.article_id,
         comments.votes,
         comments.created_at,
-        comments.body 
+        comments.body,
+        comment_votes.up
       FROM 
         users
       JOIN

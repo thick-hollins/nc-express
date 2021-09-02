@@ -21,9 +21,12 @@ exports.selectUser = async (username) => {
   return user.rows[0];
 }
 
-exports.selectLikes = async (username, { liketype }) => {
+exports.selectLikes = async (username, { liketype, up }) => {
   await checkExists(db, 'users', 'username', username)
   if (liketype) if (!['articles', 'comments'].includes(liketype)) {
+    return Promise.reject({status: 400, msg: 'Bad request - invalid query'})
+  }
+  if (up) if (!['true', 'false'].includes(up)) {
     return Promise.reject({status: 400, msg: 'Bad request - invalid query'})
   }
   let articleLikes = []
@@ -51,6 +54,7 @@ exports.selectLikes = async (username, { liketype }) => {
           articles.article_id = article_votes.article_id
         WHERE
           users.username = $1
+        ${up !== undefined ? `AND article_votes.up IS ${up}` : ''}
         ORDER BY
           articles.created_at DESC;
         ;`, [username])
@@ -79,6 +83,7 @@ exports.selectLikes = async (username, { liketype }) => {
         comments.comment_id = comment_votes.comment_id
       WHERE
         users.username = $1
+      ${up !== undefined ? `AND comment_votes.up IS ${up}` : ''}
       ORDER BY
         comments.created_at DESC;
       ;`, [username])

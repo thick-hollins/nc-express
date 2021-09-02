@@ -9,7 +9,7 @@ const {
 } = require('./errors.js')
 const { authoriseRequest } = require('./auth-middleware')
 
-app.use(cors({allowedHeaders: ['total_count', 'page', 'total_pages']}))
+app.use(cors({exposedHeaders: ['total_count', 'page', 'total_pages']}))
 
 app.use(authoriseRequest)
 

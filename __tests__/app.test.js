@@ -774,7 +774,7 @@ describe('Comments', () => {
       const { body: { msg } } = await request
       .patch('/api/comments/2').expect(400)
       .send({ inc_votes: 'Leeds' })
-        expect(msg).toBe('Bad request - invalid data type')
+        expect(msg).toBe('Bad request - invalid vote')
     }); 
   });
   describe('DELETE /api/comments/:comment_id', () => {

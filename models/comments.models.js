@@ -24,19 +24,21 @@ exports.removeComment = async (comment_id, user) => {
 
   exports.updateComment = async (comment_id, {inc_votes, body}, user) => {
     await checkExists(db, 'comments', 'comment_id', comment_id)
-    if (inc_votes === 0) {
-      return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
-    }
-    if (!inc_votes && !body) {
+    if (inc_votes === undefined && body === undefined) {
       return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
     }
-    const up = inc_votes === 1
-    await db.query(`
-      INSERT INTO comment_votes
-        (comment_id, username, up)
-      VALUES
-        ($1, $2, $3)
-    `, [comment_id, user.username, up])
+    if (inc_votes !== undefined) {
+      if (inc_votes !== 1 && inc_votes !== -1) {
+        return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
+      }
+      const up = inc_votes === 1
+      await db.query(`
+        INSERT INTO comment_votes
+          (comment_id, username, up)
+        VALUES
+          ($1, $2, $3)
+      `, [comment_id, user.username, up])
+    }
 
     if (body) {
       const owner = await db

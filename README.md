@@ -30,7 +30,9 @@ The following script will then create the database
 
     npm run setup-dbs
 
-To provide PSQL and the testing package the name of your database, you must create a `.env.test` file containing `PGDATABASE=test_database_name` and a `.env.devlopment` file conmtaining `PGDATABASE=development_database_name`
+To provide PSQL and the testing package the name of your database, you must create a `.env.test` file containing `PGDATABASE=test_database_name` and a `.env.devlopment` file containing `PGDATABASE=development_database_name`
+
+[Redis](https://redis.io/) must also be installed locally to run the project.
 
 The development database is seeded by running 
 
@@ -44,3 +46,4 @@ The test suite is run with
 
 * `node.js v14.17.1`
 * `PostgreSQL v12.7`
+* `Redis v6.2.5`

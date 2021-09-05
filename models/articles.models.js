@@ -30,21 +30,37 @@ exports.selectArticleById = async article_id => {
 
 exports.updateArticle = async (article_id, { inc_votes, body }, user) => {
   await checkExists(db, 'articles', 'article_id', article_id)
-  if (inc_votes !== undefined) {
-    if (inc_votes !== 1 && inc_votes !== -1) {
-      return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
-    }
-    const up = inc_votes === 1
-    await db.query(`
-      INSERT INTO article_votes
-        (article_id, username, up)
-      VALUES
-        ($1, $2, $3)
-    `, [article_id, user.username, up])
-  }
-  if (!inc_votes && !body) {
+  if (inc_votes === undefined && body === undefined) {
     return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
   }
+  if (inc_votes !== undefined) {
+    if (inc_votes !== 1 && inc_votes !== -1 && inc_votes !== 'undo') {
+      return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
+    }
+    if (inc_votes !== 'undo') {
+      const up = inc_votes === 1
+      await db.query(`
+        INSERT INTO article_votes
+          (article_id, username, up)
+        VALUES
+          ($1, $2, $3)
+      `, [article_id, user.username, up])
+    } else {
+      const deletedVote = await db
+        .query(`
+          DELETE FROM article_votes
+          WHERE username = $1
+            AND article_id = $2
+          RETURNING *
+        `, [user.username, article_id])
+      if (!deletedVote.rows.length) {
+        return Promise.reject({status: 400, msg: 'Bad request - vote not found'})
+      } else {
+        inc_votes = deletedVote.rows[0].up === true ? -1 : 1
+      }
+    }
+  }
+
   if (body) {
     const owner = await db
     .query(`

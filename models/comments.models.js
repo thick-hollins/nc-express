@@ -28,16 +28,31 @@ exports.removeComment = async (comment_id, user) => {
       return Promise.reject({status: 400, msg: 'Bad request - missing field(s)'})
     }
     if (inc_votes !== undefined) {
-      if (inc_votes !== 1 && inc_votes !== -1) {
+      if (inc_votes !== 1 && inc_votes !== -1 && inc_votes !== 'undo') {
         return Promise.reject({status: 400, msg: 'Bad request - invalid vote'})
       }
-      const up = inc_votes === 1
-      await db.query(`
-        INSERT INTO comment_votes
-          (comment_id, username, up)
-        VALUES
-          ($1, $2, $3)
-      `, [comment_id, user.username, up])
+      if (inc_votes !== 'undo') {
+        const up = inc_votes === 1
+        await db.query(`
+          INSERT INTO comment_votes
+            (comment_id, username, up)
+          VALUES
+            ($1, $2, $3)
+        `, [comment_id, user.username, up])
+      } else {
+        const deletedVote = await db
+          .query(`
+            DELETE FROM comment_votes
+            WHERE username = $1
+              AND comment_id = $2
+            RETURNING *
+          `, [user.username, comment_id])
+        if (!deletedVote.rows.length) {
+          return Promise.reject({status: 400, msg: 'Bad request - vote not found'})
+        } else {
+          inc_votes = deletedVote.rows[0].up === true ? -1 : 1
+        }
+      }
     }
 
     if (body) {

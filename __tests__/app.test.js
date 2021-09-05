@@ -770,12 +770,26 @@ describe('Comments', () => {
       .send({ inc_votes: 0 })
         expect(msg).toBe('Bad request - invalid vote')
     });  
-    it('rejects with 400 given invalid data type on inc vote', async () => {
+    it('rejects with 400 given invalid vote type on inc vote (not 1, -1 or undo)', async () => {
       const { body: { msg } } = await request
       .patch('/api/comments/2').expect(400)
       .send({ inc_votes: 'Leeds' })
         expect(msg).toBe('Bad request - invalid vote')
     }); 
+    it('should undo an upvote given a username and comment ID', async () => {
+      const { body: { comment: commentUpvoted } } = await request
+      .patch('/api/comments/2').expect(200)
+      .send({ inc_votes: 1 })
+        expect(commentUpvoted).toEqual(
+            expect.objectContaining({ votes: 15 })
+        )
+      const { body: { comment: upvoteUndone } } = await request
+      .patch('/api/comments/2').expect(200)
+      .send({ inc_votes: 'undo' })
+        expect(upvoteUndone).toEqual(
+            expect.objectContaining({ votes: 14 })
+        )
+    });
   });
   describe('DELETE /api/comments/:comment_id', () => {
     it('deletes a comment by id param, status 204, when user is owner', async () => {

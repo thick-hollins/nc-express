@@ -11,7 +11,6 @@
   },
   "POST /api/topics": {
     "description": "adds a topic and serves it to the user",
-    "queries": [],
     "exampleRequest": { 
           "slug": "cyclocross", 
           "description": "Belgian sports"
@@ -21,8 +20,25 @@
     }
   },
   "GET /api/articles": {
-    "description": "serves an array of all articles",
-    "queries": ["author", "topic", "sort_by", "order"],
+    "description": "serves an array of all articles, pagination data is given on response header",
+    "queries": ["author", "topic", "sort_by", "order", "page", "limit"],
+    "exampleResponse": {
+      "articles": [
+        {
+          "title": "Seafood substitutions are increasing",
+          "topic": "cooking",
+          "author": "weegembump",
+          "body": "Text from the article..",
+          "created_at": 1527695953341,
+          "votes": 0,
+          "comment_count": 5
+        }
+      ]
+    }
+  },
+  "GET /api/articles/new": {
+    "description": "serves articles posted in the last 10 minutes",
+    "queries": [],
     "exampleResponse": {
       "articles": [
         {
@@ -39,7 +55,11 @@
   },
   "POST /api/articles": {
     "description": "adds an article and serves it to the user",
-    "queries": [],
+    "exampleRequest": {
+      "title": "Seafood substitutions are increasing",
+      "topic": "cooking",
+      "body": "Text from the article.."
+    },
     "exampleResponse": {
       "article": {
           "title": "Seafood substitutions are increasing",
@@ -70,12 +90,10 @@
   },
   "DELETE /api/articles/:article_id": {
     "description": "deletes a single article",
-    "queries": [],
     "exampleResponse": { "code" : 204 } 
   },
   "PATCH /api/articles/:article_id": {
     "description": "updates an article's vote field or body and serves object",
-    "queries": [],
     "exampleRequest": {
       "inc-votes": 1,
       "body": "It's article time!"
@@ -95,8 +113,8 @@
     }
   },
   "GET /api/articles/:article_id/comments": {
-    "description": "serves an array of all comments on one article",
-    "queries": [],
+    "description": "serves an array of all comments on one article. Pagination data is given on response header",
+    "queries": ["page", "limit"],
     "exampleResponse": {
       "comments": [
         { 
@@ -112,7 +130,6 @@
   },
   "POST /api/articles/:article_id/comments": {
     "description": "adds a comment and serves it back to the user",
-    "queries": [],
     "exampleRequest": { 
           "author": "Northcoder1", 
           "body": "My Post!" 
@@ -130,9 +147,8 @@
       ]
     }
   },
-  "PATCH /api/articles/:article_id/comments": {
+  "PATCH /api/comments/:comment_id/": {
     "description": "updates a comment's vote field or body and serves comment to the user",
-    "queries": [],
     "exampleRequest": { 
           "inc_votes": -1,
           "body": "Here is what I think..."
@@ -150,9 +166,8 @@
       ]
     }
   },
-  "DELETE /api/articles/:article_id/comments": {
+  "DELETE /api/commenrs/:comment_id/": {
     "description": "deletes a single comment",
-    "queries": [],
     "exampleResponse": {
       "code": 204
     }
@@ -183,11 +198,11 @@
   },
   "PATCH /api/users/:user_id": {
     "description": "updates a user and serves it back",
-    "queries": [],
     "exampleRequest": { 
         "username": "S0uthc0der", 
         "avatar_url": "http://north.coder/img_new.jpg",
-        "name": "Fred Astaire"
+        "name": "Fred Astaire",
+        "password": "calzone"
     },
     "exampleResponse": {
       "user": { 
@@ -195,6 +210,64 @@
         "avatar_url": "http://north.coder/img_new.jpg",
         "name": "Fred Astaire"
       }
+    }
+  },
+  "GET /api/users/:user_id/likes": {
+    "description": "serves a single user's likes of comments and articles",
+    "queries": ["liketype", "up"],
+    "exampleResponse": {
+      "articles": [
+        {
+          "title": "Seafood substitutions are increasing",
+          "topic": "cooking",
+          "author": "weegembump",
+          "body": "Text from the article..",
+          "created_at": 1527695953341,
+          "votes": 1,
+          "comment_count": 5
+        }
+      ],
+      "comments": [
+        { 
+          "article_id": 2, 
+          "comment_id": 8, 
+          "votes": 5, 
+          "created_at": 1527695953341, 
+          "author": "Northcoder1", 
+          "body": "My Post!" 
+        }
+      ]
+    }
+  },
+  "POST /api/users/signup": {
+    "description": "creates a user account. Responds with new user",
+    "exampleRequest": { 
+      "username": "sonic_hedgehog",
+      "name": "Joe Warburton",
+      "avatar_url": "http://img.url",
+      "password": "pizza"
+    },
+    "exampleResponse": {
+      "username": "sonic_hedgehog",
+      "avatar_url": "http://img.url",
+      "name": "Joe Warburton"
+      }
+  },
+  "POST /api/users/login": {
+    "description": "Logs in a user, responds with access token",
+    "exampleRequest": {
+      "username": "logic1000",
+      "password": "octopus"
+    },
+    "exampleResponse": {
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImxvZ2ljMTAwMCIsImFkbWluIjpmYWxzZSwiaWF0IjoxNjMzMDA3NTU4NjM2LCJleHAiOjE2MzMxMDIyMzE0MzZ9.DOLppqkVwQGWMrFBhw4X02UPELrGO_mX5JhdyOGt9XM"
+    }
+  },
+  "POST /api/users/logout": {
+    "description": "Logs out current user",
+    "exampleRequest": {},
+    "exampleResponse": {
+      "msg": "Logged Out"
     }
   }
 }

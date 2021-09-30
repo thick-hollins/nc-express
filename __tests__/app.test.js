@@ -1106,6 +1106,22 @@ describe('Users + Users / by ID ', () => {
       expect(articles[0].article_id).toBe(2)
       expect(articles[1].article_id).toBe(4)
     });
+    it('should respond with an array of all comments upvoted', async () => {
+      await request
+        .patch('/api/comments/1')
+        .expect(200)
+        .send({ inc_votes: 1 })
+      await request
+        .patch('/api/comments/4')
+        .expect(200)
+        .send({ inc_votes: 1 })
+      const { body: { likes: { comments } } } = await request
+        .get('/api/users/test_user/likes')
+        .expect(200)
+      expect(comments).toHaveLength(2)
+      expect(comments[0].comment_id).toBe(1)
+      expect(comments[1].comment_id).toBe(4)
+    });
     it('two empty arrays if no likes', async () => {
       const { body: { likes } } = await request
         .get('/api/users/test_user/likes')
